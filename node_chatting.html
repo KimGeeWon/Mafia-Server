@@ -35,8 +35,6 @@
             jQuery("#roomName").html(jQuery("#inputRoom").val());
         });
 
-        socket.on("")
-
         // 이벤트를 연결합니다.
         socket.on("message", function(data, role, status) {
             
@@ -46,7 +44,8 @@
         // 부활시 전체 채팅으로 알림
         socket.on("broad", function(data) {
             
-            pushMessage(``, `${data.name}님이 부활하셨습니다!`, ``, null);
+            pushMessage(``, ``, null, data.role, 1, 2);
+            pushMessage(`공지`, `${data.name}님이 부활하셨습니다!`, new Date().toUTCString(), data.role, 0, 2);
         });
 
         //
@@ -56,14 +55,43 @@
         });
 
         //
+        socket.on("used", function() {
+
+            alert(`이미 능력을 사용하였습니다`);
+        });
+
+        //
+        socket.on("start", function() {
+
+            socket.emit("start", jQuery("#inputRoom").val());
+        });
+
+        // pushName, pushMsg, pushDate, role, status, day
         socket.on("police", function(name, role) {
 
             if(role = "마피아") {
-                alert(`${name}님은 마피아가 맞습니다`);
+                pushMessage(`공지`, `${name}님은 마피아가 맞습니다`, new Date().toUTCString(), "경찰", 0, 1);
             }
             else {
-                alert(`${name}님은 마피아가 아닙니다`);
+                pushMessage(`공지`, `${name}님은 마피아가 아닙니다`, new Date().toUTCString(), "경찰", 0, 1);
             }
+        });
+
+        //
+        socket.on("mafia", function(name, healed) {
+
+            if(healed = 1) {
+                pushMessage(`공지`, `${name}님이 사망하셨습니다`, new Date().toUTCString(), "마피아", 0, 2);
+            }
+            else {
+                pushMessage(`공지`, `${name}님이 의사의 치료를 받고 살아나셨습니다`, new Date().toUTCString(), "마피아", 0, 2);
+            }
+        });
+
+        //
+        socket.on("who", function(name, role) {
+
+            pushMessage(`공지`, `${name}님에게 능력을 사용했습니다`, new Date().toUTCString(), role, 0, 1);
         });
 
         // 채팅방 접속 or 퇴장시 실행되는 알림 메세지
@@ -117,7 +145,6 @@
             }
 
             if(status === 1) {
-                console.log(5555);
                 $("#dead").css("display", "block");
             }
         }
@@ -134,6 +161,9 @@
                 if(role === "마피아") {
                     select_id = "<li id='mafia'>";
                 }   
+                else {
+                    select_id = "<li id='alive'>";
+                }
             }
             else if(day !== 1) {
                 if(status === 0) {
@@ -144,8 +174,6 @@
             if(status === 1) {
                 select_id = "<li id='dead'>";
             }
-            
-            console.log(select_id);
 
             output += select_id;
             output += "<h3>" + pushName + "</h3>";
@@ -198,7 +226,12 @@
                 access = 1;
                 start = true;
 
-                socket.emit("day", day, jQuery("#inputRoom").val());
+                socket.emit("day", day, {
+                    room : jQuery("#inputRoom").val(),
+                    name : jQuery("#inputName").val(),
+                    message : jQuery("#inputMessage").val(), 
+                    date : new Date().toUTCString()
+                });
             }
         }
 
