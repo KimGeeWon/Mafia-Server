@@ -25,6 +25,9 @@ function randomRole(data, count) {
     const jobList = checkPerson(count);
     const randNum = new Array(count);
 
+    // 0: 플레이어 수 // 1: 시민 // 2: 마피아
+    var _people = [count, count, 0];
+
     // 중복 안되는 난수 생성
     for(var i=0; i<count; i++){
         randNum[i] = Math.floor(Math.random() * count);
@@ -44,10 +47,13 @@ function randomRole(data, count) {
         if(loginIds[num]['room'] === data.room) {
             loginIds[num]['role'] = insertRole(jobList[randNum[num]]);
             if(loginIds[num]['role'] === "마피아") {
-                survivor--;
+                _people[1]--;
+                _people[2]++;
             }
         }
     }
+
+    return _people;
 }
 
 function checkLoginIds(room, name) {
@@ -60,22 +66,24 @@ function checkLoginIds(room, name) {
     return false;
 }
 
-function abilityCast(data) {
+function abilityCast(data, survivor) {
     for(var num in loginIds) {
         if(loginIds[num]['room'] === data.room && loginIds[num]['targeted'] === true) {
             if(loginIds[num]['healed'] === true) {
                 io.to(data.room).emit("mafia", loginIds[num]['user'], 1);
-                survivor--;
             }
             else {
                 io.to(data.room).emit("mafia", loginIds[num]['user'], 0);
                 loginIds[num]['status'] = 1;
+                survivor--;
             }
         }
 
         loginIds[num]['targeted'] = false;
         loginIds[num]['healed'] = false;
     }
+
+    return survivor;
 }
 
 function voteCast(data) {
@@ -224,8 +232,16 @@ io.sockets.on("connection", function(socket) {
     var day = 0;
     // 밤: 25초, 낮: 생존자 * 15초, 재판: 15초, 최후의 발언: 15초, 찬/반: 10초
     var time = 0;
-    // 생존자의 수
+
+    // 생존자, 시민, 마피아를 저장하기 위한 변수
+    var people = new Array();
+    // 시간 계산 용 생존자의 수
     var survivor = 0;
+    // 시민의 수
+    var citizen = 0;
+    // 마피아의 수
+    var mafia = 0;
+
     // 투표 당선자
     var elect;
     // 투표가 동점인지 확인 // 0: 동점 X // 1: 동점 O
@@ -339,9 +355,11 @@ io.sockets.on("connection", function(socket) {
       
     socket.on("day", function(_day, data) {
 
+        console.log(survivor + "서바");
+
         // 0: 시작 X, 1: 밤, 2: 낮, 3: 재판 4: 최후의 발언 5: 찬/반
         switch(_day) {
-            case 1: abilityCast(data); day = 2; time = setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
+            case 1: survivor = abilityCast(data, survivor); day = 2; time = setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
             case 2: day = 3; time = setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
             case 3: day = voteCast(data); time = setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
             case 4: day = 5; time = setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
@@ -349,8 +367,15 @@ io.sockets.on("connection", function(socket) {
         }
     });
 
-    socket.on("start", function(room) {
+    socket.on("start", function(room, _people) {
         
+        people = _people;
+        survivor = _people[0];
+        citizen = _people[1];
+        mafia = _people[2];
+
+        console.log(people);
+
         day = 1;
         time = setTime(day, survivor);
         check_start = 1;
@@ -386,13 +411,15 @@ io.sockets.on("connection", function(socket) {
 
                 break;
             }
+
+            if(data.message === "서바") {
+                console.log("sur : " + people);
+            }
     
             if(data.message === "시작" && check_start === 0) {
-                survivor = io.sockets.adapter.rooms[room].length;s
-
-                randomRole(data, io.sockets.adapter.rooms[data.room].length);
+                people = randomRole(data, io.sockets.adapter.rooms[data.room].length);
     
-                io.to(data.room).emit("start");
+                io.to(data.room).emit("start", people);
 
                 break;
             }
@@ -412,16 +439,6 @@ io.sockets.on("connection", function(socket) {
                 io.to(data.room).emit("broad", data);
                 break;
             }
-
-            if(data.message === "asdf") {
-                console.log("check_start : " + check_start);
-                console.log("day : " + day);
-                console.log("survivor : " + survivor);
-                console.log("role: " + loginIds[checkLoginIds(data.room, data.name)]['role']);
-            }
-
-            console.log("asdf");
-            console.log(day);
     
             if(loginIds[checkLoginIds(data.room, data.name)]['status'] === 0 && day !== 1) {
                 console.log("status 0");

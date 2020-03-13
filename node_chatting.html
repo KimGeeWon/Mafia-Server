@@ -72,9 +72,9 @@
         });
 
         //
-        socket.on("start", function() {
+        socket.on("start", function(people) {
 
-            socket.emit("start", jQuery("#inputRoom").val());
+            socket.emit("start", jQuery("#inputRoom").val(), people);
         });
 
         // pushName, pushMsg, pushDate, role, status, day
