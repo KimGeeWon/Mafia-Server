@@ -41,6 +41,17 @@
             pushMessage(data.name, data.message, data.date, role, status, day);
         });
 
+        // 투표
+        socket.on("vote", function(name, tie_vote) {
+
+            if(tie_vote) {
+                pushMessage(`공지`, `동률표가 일어나 밤이 되었습니다.`, new Date().toUTCString(), "공지", 0, 1);
+            }
+            else {
+                pushMessage(`공지`, `${name}님의 최후의 발언.`, new Date().toUTCString(), "공지", 0, 4);
+            }
+        });
+
         // 부활시 전체 채팅으로 알림
         socket.on("broad", function(data) {
             
