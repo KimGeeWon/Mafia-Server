@@ -24,6 +24,8 @@
 
         socket = io.connect();
 
+        console.log(socket);
+
         // 채팅 창으로 접속 및 전환
         jQuery("#startChatting").click(function() {
             socket.emit("access", {
@@ -55,13 +57,13 @@
         // 투표
         socket.on("voteCast", function(name, tie_vote) {
 
-if(tie_vote) {
-    pushMessage(`공지`, `동률표가 일어나 밤이 되었습니다.`, new Date().toUTCString(), "공지", 0, 1);
-}
-else {
-    pushMessage(`공지`, `${name}님의 최후의 발언.`, new Date().toUTCString(), "공지", 0, 4);
-}
-});
+            if(tie_vote) {
+                pushMessage(`공지`, `동률표가 일어나 밤이 되었습니다.`, new Date().toUTCString(), "공지", 0, 1);
+            }
+            else {
+                pushMessage(`공지`, `${name}님의 최후의 발언.`, new Date().toUTCString(), "공지", 0, 4);
+            }
+        });
 
         // 부활시 전체 채팅으로 알림
         socket.on("broad", function(data) {
@@ -80,12 +82,6 @@ else {
         socket.on("used", function() {
 
             alert(`이미 능력을 사용하였습니다`);
-        });
-
-        //
-        socket.on("start", function(people) {
-
-            socket.emit("start", jQuery("#inputRoom").val(), people);
         });
 
         // pushName, pushMsg, pushDate, role, status, day
@@ -127,6 +123,8 @@ else {
         socket.on("timer", function(time, _day) {
             
             day = _day;
+
+            console.log("타임 데이 : " + day);
 
             switch(day) {
                 case 1: date.innerHTML = "밤"; break;
@@ -247,6 +245,8 @@ else {
 
                 access = 1;
                 start = true;
+
+                console.log("데이 : " + day);
 
                 socket.emit("day", day, {
                     room : jQuery("#inputRoom").val(),

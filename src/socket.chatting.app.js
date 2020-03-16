@@ -40,8 +40,6 @@ function randomRole(data, count) {
         }
     }
 
-    console.log(randNum);
-
     // 난수 값에 따라 역할 부여
     for(var num in loginIds) {
         if(loginIds[num]['room'] === data.room) {
@@ -53,7 +51,8 @@ function randomRole(data, count) {
         }
     }
 
-    return _people;
+    roomIds[checkRoomIds(data.room)]['citizen'] = _people[1];
+    roomIds[checkRoomIds(data.room)]['mafia'] = _people[2];
 }
 
 function checkLoginIds(room, name) {
@@ -66,9 +65,18 @@ function checkLoginIds(room, name) {
     return false;
 }
 
-function abilityCast(data, survivor, citizen) {
+function checkRoomIds(room) {
 
-    var people = new Array();
+    for(var num in roomIds) {
+        if(roomIds[num]['room'] === room) {
+            return num;
+        } 
+    }
+
+    return false;
+}
+
+function abilityCast(data, survivor, citizen) {
 
     for(var num in loginIds) {
         if(loginIds[num]['room'] === data.room && loginIds[num]['targeted'] === true) {
@@ -87,12 +95,8 @@ function abilityCast(data, survivor, citizen) {
         loginIds[num]['healed'] = false;
     }
 
-    people[0] = survivor;
-    people[1] = citizen;
-
-    console.log(people);
-
-    return people;
+    roomIds[checkRoomIds(data.room)]['survivor'] = survivor;
+    roomIds[checkRoomIds(data.room)]['citizen'] = citizen;
 }
 
 function voteCast(data) {
@@ -120,15 +124,19 @@ function voteCast(data) {
 
     if(tie_vote) {
         elect = "";
+
         io.to(data.room).emit("voteCast", elect, tie_vote);
 
-        vote = [elect, tie_vote, 1];
-        return vote;
+        roomIds[checkRoomIds(data.room)]['elect'] = elect;
+        roomIds[checkRoomIds(data.room)]['tie_vote'] = tie_vote;
+
+        return 1;
     }
 
-    vote = [elect, tie_vote, 4];
+    roomIds[checkRoomIds(data.room)]['elect'] = elect;
+    roomIds[checkRoomIds(data.room)]['tie_vote'] = tie_vote;
 
-    return vote;
+    return 4;
 }
 
 function checkRole(data, socket) {
@@ -205,6 +213,8 @@ function checkPerson(count) {
 }
 
 function setTime(day, survivor) {
+
+    console.log("날 " + day + " 와 " + survivor);
     
     // 밤: 25초, 낮: 생존자 * 15초, 재판: 15초, 최후의 발언: 15초, 찬/반: 10초
     switch(day) {
@@ -220,23 +230,20 @@ function votePerson(data) {
     const name = data.message.substring(1, data.message.length)
     const num = checkLoginIds(data.room, name);
 
-    console.log(num);
+    console.log(loginIds);
 
     if(num === false) {
         io.to(data.room).emit("none", name);
     }
-    else if(loginIds[num]['do_vote']) {
-        console.log(5678);
-
-        io.to(data.room).emit("vote", name, loginIds[num]['do_vote']);
+    else if(loginIds[checkLoginIds(data.room, data.name)]['do_vote']) {
+         io.to(loginIds[checkLoginIds(data.room, data.name)]['socket']).emit(
+             "vote", name, loginIds[num]['do_vote']);
     }
     else {
-        console.log(1234);
-
-        io.to(data.room).emit("vote", name, loginIds[num]['do_vote']);
+        io.to(data.room).emit("vote", name, loginIds[checkLoginIds(data.room, data.name)]['do_vote']);
 
         loginIds[num]['vote']++;
-        loginIds[num]['do_vote'] = 1;
+        loginIds[checkLoginIds(data.room, data.name)]['do_vote'] = 1;
     }
 }
 
@@ -246,40 +253,28 @@ var io = socketio.listen(server);
 // 접속한 사용자의 방이름, 사용자명, socket.id값을 저장할 전역변수
 const loginIds = new Array();
 
+// room의 day, time 등을 저장할 전역변수
+var roomIds = new Array();
+
 io.sockets.on("connection", function(socket) {
-
-    // 0: 시작 X, 1: 시작
-    var check_start = 0;
-    // 0: 시작 X, 1: 밤, 2: 낮, 3: 재판 4: 최후의 발언 5: 찬/반
-    var day = 0;
-    // 밤: 25초, 낮: 생존자 * 15초, 재판: 15초, 최후의 발언: 15초, 찬/반: 10초
-    var time = 0;
-
-    // 생존자, 시민, 마피아를 저장하기 위한 변수
-    var people = new Array();
-    // 시간 계산 용 생존자의 수
-    var survivor = 0;
-    // 시민의 수
-    var citizen = 0;
-    // 마피아의 수
-    var mafia = 0;
-
-    // 당선자, 동점 확인을 저장하기 위한 변수
-    var vote = new Array();
-    // 투표 당선자
-    var elect;
-    // 투표가 동점인지 확인 // 0: 동점 X // 1: 동점 O
-    var tie_vote;
-    // 찬성/반대 // 0: 찬성 // 1: 반대
-    var yes_no;
-    // 
-    // var roomIds = new Array();
 
     // 채팅방 입시 실행
     socket.on("access", function(data) {
 
+        roomIds.push({
+            room : data.room, // 방 이름
+            check_start : 0, // 0: 시작 X, 1: 시작
+            day : 0, // 0: 시작 X, 1: 밤, 2: 낮, 3: 재판 4: 최후의 발언 5: 찬/반
+            time : 0, // 밤: 25초, 낮: 생존자 * 15초, 재판: 15초, 최후의 발언: 15초, 찬/반: 10초
+            survivor : 0, // 시간 계산 용 생존자의 수
+            citizen : 0, // 시민의 수
+            mafia : 0, // 마피아의 수
+            elect : "", // 투표 당선자
+            tie_vote : false, // 투표가 동점인지 확인 // 0: 동점 X // 1: 동점 O
+        });
+
         // 시작한 방은 입장 불가
-        if(!check_start) {
+        if(!roomIds[checkRoomIds(data.room)]['check_start']) {
             socket.join(data.room);
 
             loginIds.push({
@@ -377,30 +372,33 @@ io.sockets.on("connection", function(socket) {
       
     socket.on("day", function(_day, data) {
 
-        // 1: 밤, 2: 낮, 3: 재판 4: 최후의 발언 5: 찬/반
+        var day = roomIds[checkRoomIds(data.room)]['day'];
+        var time = roomIds[checkRoomIds(data.room)]['time'];
+        var survivor = roomIds[checkRoomIds(data.room)]['survivor'];
+        var citizen = roomIds[checkRoomIds(data.room)]['citizen'];
+
         switch(_day) {
-            case 1: day = 2; people = abilityCast(data, survivor, citizen); survivor = people[0]; citizen = people[1]; time = setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
+            // 밤 
+            case 1: day = 2; abilityCast(data, survivor, citizen); time = setTime(day, survivor); 
+            io.to(data.room).emit("timer", time, day); break;
+
+            // 낮
             case 2: day = 3; time = setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
-            case 3: vote = voteCast(data); elect = vote[0]; tie_vote = vote[1]; day = vote[2]; time = setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
+
+            // 재판
+            case 3: day = voteCast(data); time = setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
+
+            // 최후의 발언
             case 4: day = 5; time = setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
+
+            // 찬/반
             case 5: day = 1; time = setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
         }
 
-        console.log("핍" + people);
-    });
-
-    socket.on("start", function(room, _people) {
-        
-        people = _people;
-        survivor = _people[0];
-        citizen = _people[1];
-        mafia = _people[2];
-
-        day = 1;
-        time = 5//setTime(day, survivor);
-        check_start = 1;
-
-        io.to(room).emit("timer", time, day);
+        roomIds[checkRoomIds(data.room)]['day'] = day;
+        roomIds[checkRoomIds(data.room)]['time'] = time;
+        roomIds[checkRoomIds(data.room)]['survivor'] = survivor;
+        roomIds[checkRoomIds(data.room)]['citizen'] = citizen;
     });
       
     // 메세지 전송 이벤트
@@ -418,6 +416,11 @@ io.sockets.on("connection", function(socket) {
         // status - 0: 생존, 1: 사망
         // day    - 0: 시작 X, 1: 밤, 2: 낮, 3: 재판 4: 최후의 발언 5: 찬/반
 
+        var role = loginIds[checkLoginIds(data.room, data.name)]['role'];
+        var status = loginIds[checkLoginIds(data.room, data.name)]['status'];
+        var day = roomIds[checkRoomIds(data.room)]['day'];
+        var survivor = roomIds[checkRoomIds(data.room)]['survivor'];
+
         while(1) {
 
             if(data.message.startsWith('!')) {
@@ -432,10 +435,20 @@ io.sockets.on("connection", function(socket) {
                 break;
             }
     
-            if(data.message === "시작" && check_start === 0) {
-                people = randomRole(data, io.sockets.adapter.rooms[data.room].length);
-    
-                io.to(data.room).emit("start", people);
+            if(data.message === "시작" && roomIds[checkRoomIds(data.room)]['check_start'] === 0) {
+                randomRole(data, io.sockets.adapter.rooms[data.room].length);
+
+                roomIds[checkRoomIds(data.room)]['survivor'] = io.sockets.adapter.rooms[data.room].length;
+                roomIds[checkRoomIds(data.room)]['day'] = 1;
+                roomIds[checkRoomIds(data.room)]['check_start'] = 1;
+                roomIds[checkRoomIds(data.room)]['time'] = setTime(1, io.sockets.adapter.rooms[data.room].length);
+
+                console.log(roomIds);
+
+                console.log(roomIds[checkRoomIds(data.room)]['day'] + " : " + roomIds[checkRoomIds(data.room)]['survivor'] + " : " + roomIds[checkRoomIds(data.room)]['time']);
+
+                io.to(data.room).emit("timer", roomIds[checkRoomIds(data.room)]['time'], 
+                roomIds[checkRoomIds(data.room)]['day']);
 
                 break;
             }
@@ -461,9 +474,10 @@ io.sockets.on("connection", function(socket) {
 
                 for(var num in loginIds) {
                     if(loginIds[num]['room'] === data.room) {
-                        io.to(loginIds[num]['socket']).emit("message", data, loginIds[checkLoginIds(data.room, data.name)]['role'], loginIds[checkLoginIds(data.room, data.name)]['status'], day);
+                        io.to(loginIds[num]['socket']).emit("message", data, role, status, day);
                     } 
                 }
+
                 break;
             }
 
@@ -472,20 +486,22 @@ io.sockets.on("connection", function(socket) {
 
                 for(var num in loginIds) {
                     if(loginIds[num]['room'] === data.room && loginIds[num]['status'] === 1) {
-                        io.to(loginIds[num]['socket']).emit("message", data, loginIds[checkLoginIds(data.room, data.name)]['role'], loginIds[checkLoginIds(data.room, data.name)]['status'], day);
+                        io.to(loginIds[num]['socket']).emit("message", data, role, status, day);
                     } 
                 }
+
                 break;
             }
 
-            if(loginIds[checkLoginIds(data.room, data.name)]['role'] === "마피아" && day === 1) {
+            if(role === "마피아" && day === 1) {
                 console.log("마피아");
 
                 for(var num in loginIds) {
                     if(loginIds[num]['room'] === data.room && loginIds[num]['role'] === "마피아") {
-                        io.to(loginIds[num]['socket']).emit("message", data, loginIds[checkLoginIds(data.room, data.name)]['role'], loginIds[checkLoginIds(data.room, data.name)]['status'], day);
+                        io.to(loginIds[num]['socket']).emit("message", data, role, status, day);
                     }
                 }
+
                 break;
             }
 
