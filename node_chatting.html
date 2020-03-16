@@ -42,15 +42,26 @@
         });
 
         // 투표
-        socket.on("vote", function(name, tie_vote) {
+        socket.on("vote", function(name, do_vote) {
 
-            if(tie_vote) {
-                pushMessage(`공지`, `동률표가 일어나 밤이 되었습니다.`, new Date().toUTCString(), "공지", 0, 1);
+            if(do_vote) {
+                alert(`이미 투표하셨습니다.`);
             }
             else {
-                pushMessage(`공지`, `${name}님의 최후의 발언.`, new Date().toUTCString(), "공지", 0, 4);
+                pushMessage(`공지`, `${name}님이 투표받았습니다.`, new Date().toUTCString(), "공지", 0, 3);
             }
         });
+
+        // 투표
+        socket.on("voteCast", function(name, tie_vote) {
+
+if(tie_vote) {
+    pushMessage(`공지`, `동률표가 일어나 밤이 되었습니다.`, new Date().toUTCString(), "공지", 0, 1);
+}
+else {
+    pushMessage(`공지`, `${name}님의 최후의 발언.`, new Date().toUTCString(), "공지", 0, 4);
+}
+});
 
         // 부활시 전체 채팅으로 알림
         socket.on("broad", function(data) {
