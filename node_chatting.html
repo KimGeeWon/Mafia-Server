@@ -54,11 +54,38 @@
             }
         });
 
+        // 찬성/반대
+        socket.on("opposite", function(opposite, do_vote) {
+
+            console.log(do_vote);
+
+            if(do_vote) {
+                alert(`이미 투표하셨습니다.`);
+            }
+            else if(opposite === "찬성") {
+                pushMessage(`공지`, `누군가가 투표에 찬성하였습니다.`, new Date().toUTCString(), "공지", 0, 5);
+            }
+            else if(opposite === "반대") {
+                pushMessage(`공지`, `누군가가 투표에 반대하였습니다.`, new Date().toUTCString(), "공지", 0, 5);
+            }
+        });
+
         // 투표
         socket.on("voteCast", function(name, tie_vote) {
 
             if(tie_vote) {
                 pushMessage(`공지`, `동률표가 일어나 밤이 되었습니다.`, new Date().toUTCString(), "공지", 0, 1);
+            }
+            else {
+                pushMessage(`공지`, `${name}님의 최후의 발언.`, new Date().toUTCString(), "공지", 0, 4);
+            }
+        });
+
+        // 찬성/반대
+        socket.on("oppositeCast", function(vote, name) {
+
+            if(vote === 1) {
+                pushMessage(`공지`, `투표가 찬성으로 마무리되어 ${name}님이 처형당했습니다`, new Date().toUTCString(), "공지", 0, 1);
             }
             else {
                 pushMessage(`공지`, `${name}님의 최후의 발언.`, new Date().toUTCString(), "공지", 0, 4);
@@ -72,13 +99,19 @@
             pushMessage(`공지`, `${data.name}님이 부활하셨습니다!`, new Date().toUTCString(), data.role, 0, 2);
         });
 
-        //
+        // 능력 혹은 투표시 없는 유저를 지목했을 때
         socket.on("none", function(name) {
 
             alert(`${name}님은 없는 유저입니다`);
         });
 
-        //
+        // 능력 혹은 투표시 없는 유저를 지목했을 때
+        socket.on("last", function(name) {
+
+            alert(`최후의 발언에는 투표에 당선된 사람만 발언할 수 있습니다.`);
+        });
+
+        // 
         socket.on("used", function() {
 
             alert(`이미 능력을 사용하였습니다`);
