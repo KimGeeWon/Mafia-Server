@@ -85,10 +85,13 @@
         socket.on("oppositeCast", function(vote, name) {
 
             if(vote === 1) {
-                pushMessage(`공지`, `투표가 찬성으로 마무리되어 ${name}님이 처형당했습니다`, new Date().toUTCString(), "공지", 0, 1);
+                pushMessage(`공지`, `투표가 찬성으로 마무리되어 ${name}님이 처형되었습니다`, new Date().toUTCString(), "공지", 0, 1);
             }
-            else {
-                pushMessage(`공지`, `${name}님의 최후의 발언.`, new Date().toUTCString(), "공지", 0, 4);
+            else if(vote === 0){
+                pushMessage(`공지`, `동률표가 일어나 투표가 마무리되었습니다.`, new Date().toUTCString(), "공지", 0, 4);
+            }
+            else if(vote === -1){
+                pushMessage(`공지`, `투표가 반대로 마무리되었습니다.`, new Date().toUTCString(), "공지", 0, 4);
             }
         });
 

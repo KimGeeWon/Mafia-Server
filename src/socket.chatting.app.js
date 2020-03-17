@@ -118,7 +118,7 @@ function voteCast(data) {
         }
 
         loginIds[num]['vote'] = 0;
-        loginIds[num]['do_vote'] = 0;
+        loginIds[num]['do_vote'] = false;
     }
 
     if(tie_vote) {
@@ -138,9 +138,11 @@ function voteCast(data) {
     return 4;
 }
 
-function oppositeCast() {
+function oppositeCast(data) {
 
-    const num = checkLoginIds(data.room, roomIds[checkRoomIds(data.room)]['elect']);
+    const name = roomIds[checkRoomIds(data.room)]['elect'];
+
+    const num = checkLoginIds(data.room, name);
 
     const vote = loginIds[num]['vote'];
 
@@ -148,9 +150,13 @@ function oppositeCast() {
         loginIds[num]['status'] = 1;
         roomIds[checkRoomIds(data.room)]['survivor']--;
         roomIds[checkRoomIds(data.room)]['citizen']--;
+        io.to(data.room).emit("oppositeCast", 1, name);
     }
     else if(vote === 0) {
-        
+        io.to(data.room).emit("oppositeCast", 0, name);
+    }
+    else if(vote === 0) {
+        io.to(data.room).emit("oppositeCast", -1, name);
     }
 }
 
@@ -199,6 +205,8 @@ function mafiaAbility(target, myself, socket) {
 function doctorAbility(target, socket) {
 
     target.healed = true;
+
+    socket.emit("who", target.user, myself.role);
 }
 
 function insertRole(data) {
@@ -258,7 +266,7 @@ function votePerson(data) {
         io.to(data.room).emit("vote", name, loginIds[checkLoginIds(data.room, data.name)]['do_vote']);
 
         loginIds[num]['vote']++;
-        loginIds[checkLoginIds(data.room, data.name)]['do_vote'] = 1;
+        loginIds[checkLoginIds(data.room, data.name)]['do_vote'] = true;
     }
 }
 
@@ -275,13 +283,13 @@ function oppositePerson(data) {
         io.to(data.room).emit("opposite", opposite, loginIds[checkLoginIds(data.room, data.name)]['do_vote']);
 
         loginIds[num]['vote']++;
-        loginIds[checkLoginIds(data.room, data.name)]['do_vote'] = 1;
+        loginIds[checkLoginIds(data.room, data.name)]['do_vote'] = true;
     }
     else if(opposite === "반대") {
         io.to(data.room).emit("opposite", opposite, loginIds[checkLoginIds(data.room, data.name)]['do_vote']);
 
         loginIds[num]['vote']--;
-        loginIds[checkLoginIds(data.room, data.name)]['do_vote'] = 1;
+        loginIds[checkLoginIds(data.room, data.name)]['do_vote'] = true;
     }
 
     console.log(loginIds);
@@ -433,7 +441,7 @@ io.sockets.on("connection", function(socket) {
                 case 4: day = 5; time = setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
     
                 // 찬/반
-                case 5: day = 1; oppositeCast(); time = setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
+                case 5: day = 1; oppositeCast(data); time = setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
             }
 
             roomIds[checkRoomIds(data.room)]['day'] = day;
@@ -503,22 +511,6 @@ io.sockets.on("connection", function(socket) {
                 if(data.message === "마피아") {
                     loginIds[checkLoginIds(data.room, data.name)]['role'] = "마피아";
                     roomIds[checkRoomIds(data.room)]['day'] = 1;
-                    break;
-                }
-
-                if(data.message === "바나나") {
-                    roomIds[checkRoomIds(data.room)]['day'] = 2;
-                    break;
-                }
-
-                if(data.message === "최후") {
-                    roomIds[checkRoomIds(data.room)]['day'] = 4;
-                    roomIds[checkRoomIds(data.room)]['elect'] = data.name;
-                    break;
-                }
-
-                if(data.message === "찬반") {
-                    roomIds[checkRoomIds(data.room)]['day'] = 5;
                     break;
                 }
                 
