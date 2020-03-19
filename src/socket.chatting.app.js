@@ -81,13 +81,9 @@ function abilityCast(data, survivor, citizen) {
     for(var num in loginIds) {
         if(loginIds[num]['room'] === data.room && loginIds[num]['targeted'] === true) {
             if(loginIds[num]['healed'] === true) {
-
-                console.log(true);
                 io.to(data.room).emit("mafia", loginIds[num]['user'], true);
             }
             else {
-
-                console.log(false);
                 io.to(data.room).emit("mafia", loginIds[num]['user'], false);
                 loginIds[num]['status'] = 1;
                 survivor--;
@@ -147,6 +143,8 @@ function oppositeCast(data) {
 
     const name = roomIds[checkRoomIds(data.room)]['elect'];
 
+    const role = loginIds[checkLoginIds(data.room, name)]['role'];
+
     const num = checkLoginIds(data.room, name);
 
     const vote = loginIds[num]['vote'];
@@ -154,7 +152,12 @@ function oppositeCast(data) {
     if(vote > 0) {
         loginIds[num]['status'] = 1;
         roomIds[checkRoomIds(data.room)]['survivor']--;
-        roomIds[checkRoomIds(data.room)]['citizen']--;
+        if(role === "마피아") {
+            roomIds[checkRoomIds(data.room)]['mafia']--;
+        }
+        else {
+            roomIds[checkRoomIds(data.room)]['citizen']--;
+        }
         io.to(data.room).emit("oppositeCast", 1, name);
     }
     else if(vote === 0) {
@@ -179,8 +182,6 @@ function checkRole(data, socket) {
             var target = loginIds[num];
         } 
     }
-
-    console.log(myself.role);
 
     if(myself.do_role === true) {
         socket.emit("used");
@@ -322,8 +323,12 @@ function initGame(data) {
     }
 }
 
-function checkGameEnd(data, mafia, citizen) {
+function checkGameEnd(data) {
     var result = false;
+    const mafia = roomIds[checkRoomIds(data.room)]['mafia'];
+    const citizen = roomIds[checkRoomIds(data.room)]['citizen'];
+    
+    console.log("이게 뭔 일이야");
 
     if(mafia >= citizen) {
         initGame(data);
@@ -335,6 +340,8 @@ function checkGameEnd(data, mafia, citizen) {
         result = true;
         io.to(data.room).emit("initGame", "시민");
     }
+
+    console.log(result);
 
     return result;
 }
@@ -476,7 +483,7 @@ io.sockets.on("connection", function(socket) {
 
             switch(_day) {
                 // 밤 -> 낮
-                case 1: day = 2; abilityCast(data, survivor, citizen); if(checkGameEnd(data, mafia, citizen)) { end = true; break; }; time = setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
+                case 1: day = 2; abilityCast(data, survivor, citizen); if(checkGameEnd(data)) { end = true; break; }; time = setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
     
                 // 낮 -> 재판
                 case 2: day = 3; time = setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
@@ -488,7 +495,7 @@ io.sockets.on("connection", function(socket) {
                 case 4: day = 5; time = setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
     
                 // 찬/반 -> 밤
-                case 5: day = 1; oppositeCast(data); if(checkGameEnd(data, mafia, citizen)) { end = true; break; }; time = setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
+                case 5: day = 1; oppositeCast(data); if(checkGameEnd(data)){ end = true; break; }; time = setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
             }
 
             if(!end) {
