@@ -85,7 +85,7 @@
         socket.on("oppositeCast", function(vote, name) {
 
             if(vote === 1) {
-                pushMessage(`공지`, `투표가 찬성으로 마무리되어 ${name}님이 처형되었습니다`, new Date().toUTCString(), "공지", 0, 1);
+                pushMessage(`공지`, `투표가 찬성으로 마무리되어 ${name}님이 처형되었습니다`, new Date().toUTCString(), "공지", 0, 4);
             }
             else if(vote === 0){
                 pushMessage(`공지`, `동률표가 일어나 투표가 마무리되었습니다.`, new Date().toUTCString(), "공지", 0, 4);
@@ -118,6 +118,14 @@
         socket.on("used", function() {
 
             alert(`이미 능력을 사용하였습니다`);
+        });
+
+        // 능력을 이미 사용한 경우 팝업
+        socket.on("role", function(role) {
+
+            console.log(role);
+
+            pushMessage(`공지`, `당신은 ${role}입니다`, new Date().toUTCString(), role, 0, 1);
         });
 
         // pushName, pushMsg, pushDate, role, status, day
@@ -162,11 +170,13 @@
 
             jQuery("#content").empty();
 
+            date.innerHTML = "준비중";
+
             if(win === "시민") {
-                msg = "시민 팀의 승리로 마피아 게임이 종료되었습니다!"
+                msg = "시민 팀의 승리로 게임이 종료되었습니다!"
             }
             else if(win === "마피아") {
-                msg = "마피아 팀의 승리로 마피아 게임이 종료되었습니다!"
+                msg = "마피아 팀의 승리로 게임이 종료되었습니다!"
             }
 
             pushMessage(`공지`, msg, new Date().toUTCString(), "", 0);
@@ -189,9 +199,11 @@
         });
 
         // 게임 시작때 채팅 초기화
-        socket.on("start", function(time, _day) {
+        socket.on("start", function() {
             
             jQuery("#content").empty();
+
+            pushMessage(`공지`, `게임이 시작했습니다.`, new Date().toUTCString(), "", 0);
         });
 
         // 채팅 메시지를 전송한다.
@@ -299,8 +311,6 @@
 
                 access = 1;
                 start = true;
-
-                console.log("데이 : " + day);
 
                 socket.emit("day", day, {
                     room : jQuery("#inputRoom").val(),
