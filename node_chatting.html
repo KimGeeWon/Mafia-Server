@@ -142,11 +142,11 @@
         // 마피아 능력으로 사망/치료 를 확인하기 위해 메시지 팝업
         socket.on("mafia", function(name, healed) {
 
-            if(healed = 1) {
-                pushMessage(`공지`, `${name}님이 사망하셨습니다`, new Date().toUTCString(), "마피아", 0, 2);
+            if(healed) {
+                pushMessage(`공지`, `${name}님이 의사의 치료를 받고 살아나셨습니다`, new Date().toUTCString(), "마피아", 0, 2);
             }
             else {
-                pushMessage(`공지`, `${name}님이 의사의 치료를 받고 살아나셨습니다`, new Date().toUTCString(), "마피아", 0, 2);
+                pushMessage(`공지`, `${name}님이 사망하셨습니다`, new Date().toUTCString(), "마피아", 0, 2);
             }
         });
 

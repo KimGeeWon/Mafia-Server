@@ -81,25 +81,27 @@ function abilityCast(data, survivor, citizen) {
     for(var num in loginIds) {
         if(loginIds[num]['room'] === data.room && loginIds[num]['targeted'] === true) {
             if(loginIds[num]['healed'] === true) {
-                io.to(data.room).emit("mafia", loginIds[num]['user'], 1);
+
+                console.log(true);
+                io.to(data.room).emit("mafia", loginIds[num]['user'], true);
             }
             else {
-                io.to(data.room).emit("mafia", loginIds[num]['user'], 0);
+
+                console.log(false);
+                io.to(data.room).emit("mafia", loginIds[num]['user'], false);
                 loginIds[num]['status'] = 1;
                 survivor--;
                 citizen--;
             }
         }
 
+        loginIds[num]['do_role'] = false;
         loginIds[num]['targeted'] = false;
         loginIds[num]['healed'] = false;
     }
 
     roomIds[checkRoomIds(data.room)]['survivor'] = survivor;
     roomIds[checkRoomIds(data.room)]['citizen'] = citizen;
-
-    console.log("능력 : ");
-    console.log(roomIds);
 }
 
 function voteCast(data) {
@@ -178,6 +180,8 @@ function checkRole(data, socket) {
         } 
     }
 
+    console.log(myself.role);
+
     if(myself.do_role === true) {
         socket.emit("used");
     }
@@ -185,7 +189,7 @@ function checkRole(data, socket) {
         switch(myself.role) {
             case "마피아": mafiaAbility(target, myself, socket); break;
             case "경찰": policeAbility(name, target.role, socket); break;
-            case "의사": doctorAbility(target, sockets); break;
+            case "의사": doctorAbility(target, myself, socket); break;
             default: io.to(loginIds[checkLoginIds(data.room, data.name)]['socket']).emit("none", myself.user);
         }
     
@@ -205,7 +209,7 @@ function mafiaAbility(target, myself, socket) {
     socket.emit("who", target.user, myself.role);
 }
 
-function doctorAbility(target, socket) {
+function doctorAbility(target, myself, socket) {
 
     target.healed = true;
 
@@ -227,7 +231,7 @@ function checkPerson(count) {
     switch(count) {
         case 1: jobList = [1]; break;
         case 2: jobList = [2, 1]; break;
-        case 3: jobList = [0, 1, 2]; break;
+        case 3: jobList = [3, 1, 2]; break;
         case 4: jobList = [0, 1, 2, 3]; break;
         case 5: jobList = [0, 0, 1, 2, 3]; break;
         case 6: jobList = [0, 0, 0, 1, 2, 3]; break;
@@ -243,7 +247,7 @@ function setTime(day, survivor) {
     // 밤: 25초, 낮: 생존자 * 15초, 재판: 15초, 최후의 발언: 15초, 찬/반: 10초
     switch(day) {
         case 1: return 10;
-        case 2: return survivor * 15;
+        case 2: return 15;//survivor * 15;
         case 3: return 15;
         case 4: return 15;
         case 5: return 10;
@@ -462,7 +466,7 @@ io.sockets.on("connection", function(socket) {
       
     socket.on("day", function(_day, data) {
 
-        var day = roomIds[checkRoomIds(data.room)]['day'];
+            var day = roomIds[checkRoomIds(data.room)]['day'];
             var time = roomIds[checkRoomIds(data.room)]['time'];
             var survivor = roomIds[checkRoomIds(data.room)]['survivor'];
             var citizen = roomIds[checkRoomIds(data.room)]['citizen'];
@@ -472,8 +476,7 @@ io.sockets.on("connection", function(socket) {
 
             switch(_day) {
                 // 밤 -> 낮
-                case 1: day = 2; abilityCast(data, survivor, citizen); if(checkGameEnd(data, mafia, citizen)) { 
-                    end = true; break; } time = setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
+                case 1: day = 2; abilityCast(data, survivor, citizen); if(checkGameEnd(data, mafia, citizen)) { end = true; break; }; time = setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
     
                 // 낮 -> 재판
                 case 2: day = 3; time = setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
@@ -485,16 +488,10 @@ io.sockets.on("connection", function(socket) {
                 case 4: day = 5; time = setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
     
                 // 찬/반 -> 밤
-                case 5: day = 1; oppositeCast(data); time = setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
+                case 5: day = 1; oppositeCast(data); if(checkGameEnd(data, mafia, citizen)) { end = true; break; }; time = setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
             }
 
             if(!end) {
-                day = roomIds[checkRoomIds(data.room)]['day'];
-                time = roomIds[checkRoomIds(data.room)]['time'];
-                survivor = roomIds[checkRoomIds(data.room)]['survivor'];
-                citizen = roomIds[checkRoomIds(data.room)]['citizen'];
-                mafia = roomIds[checkRoomIds(data.room)]['mafia'];
-
                 roomIds[checkRoomIds(data.room)]['day'] = day;
                 roomIds[checkRoomIds(data.room)]['time'] = time;
                 roomIds[checkRoomIds(data.room)]['survivor'] = survivor;
@@ -562,9 +559,6 @@ io.sockets.on("connection", function(socket) {
 
                     io.to(data.room).emit("timer", roomIds[checkRoomIds(data.room)]['time'], 
                     roomIds[checkRoomIds(data.room)]['day']);
-
-                    console.log("시작 : ")
-                    console.log(roomIds);
 
                     break;
                 }
