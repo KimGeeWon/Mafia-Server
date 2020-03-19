@@ -108,13 +108,13 @@
             alert(`${name}님은 없는 유저입니다`);
         });
 
-        // 능력 혹은 투표시 없는 유저를 지목했을 때
+        // 최후의 발언 때 당선자 외 사람이 채팅시 팝업
         socket.on("last", function(name) {
 
             alert(`최후의 발언에는 투표에 당선된 사람만 발언할 수 있습니다.`);
         });
 
-        // 
+        // 능력을 이미 사용한 경우 팝업
         socket.on("used", function() {
 
             alert(`이미 능력을 사용하였습니다`);
@@ -131,7 +131,7 @@
             }
         });
 
-        //
+        // 마피아 능력으로 사망/치료 를 확인하기 위해 메시지 팝업
         socket.on("mafia", function(name, healed) {
 
             if(healed = 1) {
@@ -142,7 +142,7 @@
             }
         });
 
-        //
+        // 누구에게 능력 사용했는지 메시지 팝업
         socket.on("who", function(name, role) {
 
             pushMessage(`공지`, `${name}님에게 능력을 사용했습니다`, new Date().toUTCString(), role, 0, 1);
@@ -156,11 +156,26 @@
         });
 
         // 채팅방 접속 or 퇴장시 실행되는 알림 메세지
+        socket.on("initGame", function(win) {
+            
+            var msg = "";
+
+            jQuery("#content").empty();
+
+            if(win === "시민") {
+                msg = "시민 팀의 승리로 마피아 게임이 종료되었습니다!"
+            }
+            else if(win === "마피아") {
+                msg = "마피아 팀의 승리로 마피아 게임이 종료되었습니다!"
+            }
+
+            pushMessage(`공지`, msg, new Date().toUTCString(), "", 0);
+        });
+
+        // 채팅방 접속 or 퇴장시 실행되는 알림 메세지
         socket.on("timer", function(time, _day) {
             
             day = _day;
-
-            console.log("타임 데이 : " + day);
 
             switch(day) {
                 case 1: date.innerHTML = "밤"; break;
@@ -171,6 +186,12 @@
             }
 
             start_timer(time);
+        });
+
+        // 게임 시작때 채팅 초기화
+        socket.on("start", function(time, _day) {
+            
+            jQuery("#content").empty();
         });
 
         // 채팅 메시지를 전송한다.

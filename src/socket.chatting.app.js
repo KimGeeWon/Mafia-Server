@@ -160,7 +160,7 @@ function oppositeCast(data) {
     }
 }
 
-function checkRole(data) {
+function checkRole(data, socket) {
     var myself;
     var target;
     var name = data.message.substring(1, data.message.length);
@@ -175,6 +175,8 @@ function checkRole(data) {
         } 
     }
 
+    console.log(myself);
+
     if(myself.do_role === true) {
         socket.emit("used");
     }
@@ -183,7 +185,7 @@ function checkRole(data) {
             case "마피아": mafiaAbility(target, myself, socket); break;
             case "경찰": policeAbility(name, target.role, socket); break;
             case "의사": doctorAbility(target, sockets); break;
-            default: io.to(data.room).emit("none", myself.user);
+            default: io.to(loginIds[checkLoginIds(data.room, data.name)]['socket']).emit("none", myself.user);
         }
     
         myself.do_role = true;
@@ -198,6 +200,8 @@ function policeAbility(name, role, socket) {
 function mafiaAbility(target, myself, socket) {
     
     target.targeted = true;
+
+    console.log("asdf");
 
     socket.emit("who", target.user, myself.role);
 }
@@ -236,8 +240,6 @@ function checkPerson(count) {
 }
 
 function setTime(day, survivor) {
-
-    console.log("날 " + day + " 와 " + survivor);
     
     // 밤: 25초, 낮: 생존자 * 15초, 재판: 15초, 최후의 발언: 15초, 찬/반: 10초
     switch(day) {
@@ -252,8 +254,6 @@ function setTime(day, survivor) {
 function votePerson(data) {
     const name = data.message.substring(1, data.message.length);
     const num = checkLoginIds(data.room, name);
-
-    console.log(loginIds);
 
     if(num === false) {
         io.to(data.room).emit("none", name);
@@ -291,16 +291,33 @@ function oppositePerson(data) {
         loginIds[num]['vote']--;
         loginIds[checkLoginIds(data.room, data.name)]['do_vote'] = true;
     }
-
-    console.log(loginIds);
 }
 
-function initGame() {
+function initGame(data, win) {
 
-    roomIds[checkRoomIds(data.room)]['citizen'];
+    roomIds[checkRoomIds(data.room)]['check_start'] = 0;
+    roomIds[checkRoomIds(data.room)]['day'] = 0;
+    roomIds[checkRoomIds(data.room)]['time'] = 0;
+    roomIds[checkRoomIds(data.room)]['survivor'] = 0;
+    roomIds[checkRoomIds(data.room)]['citizen'] = 0;
+    roomIds[checkRoomIds(data.room)]['mafia'] = 0;
+    roomIds[checkRoomIds(data.room)]['elect'] = "";
+    roomIds[checkRoomIds(data.room)]['tie_vote'] = false; 
+
+    for(var num in loginIds) {
+        if(loginIds[num]['room'] === data.room) {
+            loginIds[num]['role'] = null;
+            loginIds[num]['do_role'] = false;
+            loginIds[num]['status'] = 0;
+            loginIds[num]['healed'] = false;
+            loginIds[num]['targeted'] = false;
+            loginIds[num]['do_vote'] = false;
+            loginIds[num]['vote'] = 0;
+        }
+    }
+
+    io.to(data.room).emit("initGame", win);
 }
-
-
 
 // 소켓 서버를 만든다.
 var io = socketio.listen(server);
@@ -435,12 +452,15 @@ io.sockets.on("connection", function(socket) {
             var survivor = roomIds[checkRoomIds(data.room)]['survivor'];
             var citizen = roomIds[checkRoomIds(data.room)]['citizen'];
             var mafia = roomIds[checkRoomIds(data.room)]['mafia'];
+            var win;
 
-            if(mafia >= citiezn) {
+            if(mafia >= citizen) {
                 _day = 6;
+                win = "마피아";
             }
             else if(mafia === 0) {
-                _day = 7;
+                _day = 6;
+                win = "시민";
             }
 
             switch(_day) {
@@ -460,11 +480,8 @@ io.sockets.on("connection", function(socket) {
                 // 찬/반 -> 밤
                 case 5: day = 1; oppositeCast(data); time = setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
 
-                // 마피아 승리
-                case 6: initGame(data); break;
-
-                // 시민 승리
-                case 7: initGame(data); break;
+                // 시민 or 마피아 승리
+                case 6: initGame(data, win); break;
             }
 
             roomIds[checkRoomIds(data.room)]['day'] = day;
@@ -494,8 +511,6 @@ io.sockets.on("connection", function(socket) {
 
         try {
 
-            console.log(roomIds);
-
             var role = loginIds[checkLoginIds(data.room, data.name)]['role'];
             var status = loginIds[checkLoginIds(data.room, data.name)]['status'];
             var day = roomIds[checkRoomIds(data.room)]['day'];
@@ -504,9 +519,9 @@ io.sockets.on("connection", function(socket) {
             while(1) {
 
                 if(data.message.startsWith('!')) {
-
+                    
                     switch(day) {
-                        case 1: checkRole(data); break;
+                        case 1: checkRole(data, socket); break;
                         case 3: votePerson(data); break;
                         case 5: oppositePerson(data); break;
                         default: break;
@@ -520,15 +535,12 @@ io.sockets.on("connection", function(socket) {
 
                     roomIds[checkRoomIds(data.room)]['survivor'] = io.sockets.adapter.rooms[data.room].length;
                     roomIds[checkRoomIds(data.room)]['day'] = 1;
-                    roomIds[checkRoomIds(data.room)]['check_start'] = 1;
                     roomIds[checkRoomIds(data.room)]['time'] = setTime(1, io.sockets.adapter.rooms[data.room].length);
-
-                    console.log(roomIds);
-
-                    console.log(roomIds[checkRoomIds(data.room)]['day'] + " : " + roomIds[checkRoomIds(data.room)]['survivor'] + " : " + roomIds[checkRoomIds(data.room)]['time']);
 
                     io.to(data.room).emit("timer", roomIds[checkRoomIds(data.room)]['time'], 
                     roomIds[checkRoomIds(data.room)]['day']);
+
+                    roomIds[checkRoomIds(data.room)]['check_start'] = 1;
 
                     break;
                 }
@@ -550,6 +562,12 @@ io.sockets.on("connection", function(socket) {
                     break;
                 }
 
+                if(data.message === "ㅁㄴㅇㄹ") {
+                    
+                    io.to(data.room).emit("initGame", "시민");
+                    break;
+                }
+
                 if(day === 4) {
                     console.log("최후의 발언");
 
@@ -559,11 +577,9 @@ io.sockets.on("connection", function(socket) {
                         }
                         else {
                             socket.emit("last");
-
                             break;
                         }
                     }
-
                     break;
                 }
         
