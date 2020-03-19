@@ -295,6 +295,13 @@ function oppositePerson(data) {
     console.log(loginIds);
 }
 
+function initGame() {
+
+    roomIds[checkRoomIds(data.room)]['citizen'];
+}
+
+
+
 // 소켓 서버를 만든다.
 var io = socketio.listen(server);
 
@@ -309,17 +316,19 @@ io.sockets.on("connection", function(socket) {
     // 채팅방 입시 실행
     socket.on("access", function(data) {
 
-        roomIds.push({
-            room : data.room, // 방 이름
-            check_start : 0, // 0: 시작 X, 1: 시작
-            day : 0, // 0: 시작 X, 1: 밤, 2: 낮, 3: 재판 4: 최후의 발언 5: 찬/반
-            time : 0, // 밤: 25초, 낮: 생존자 * 15초, 재판: 15초, 최후의 발언: 15초, 찬/반: 10초
-            survivor : 0, // 시간 계산 용 생존자의 수
-            citizen : 0, // 시민의 수
-            mafia : 0, // 마피아의 수
-            elect : "", // 투표 당선자
-            tie_vote : false, // 투표가 동점인지 확인 // 0: 동점 X // 1: 동점 O
-        });
+        if(!checkRoomIds(data.room)) {
+            roomIds.push({
+                room : data.room, // 방 이름
+                check_start : 0, // 0: 시작 X, 1: 시작
+                day : 0, // 0: 시작 X, 1: 밤, 2: 낮, 3: 재판 4: 최후의 발언 5: 찬/반
+                time : 0, // 밤: 25초, 낮: 생존자 * 15초, 재판: 15초, 최후의 발언: 15초, 찬/반: 10초
+                survivor : 0, // 시간 계산 용 생존자의 수
+                citizen : 0, // 시민의 수
+                mafia : 0, // 마피아의 수
+                elect : "", // 투표 당선자
+                tie_vote : false, // 투표가 동점인지 확인 // 0: 동점 X // 1: 동점 O
+            });
+        }
 
         // 시작한 방은 입장 불가
         if(!roomIds[checkRoomIds(data.room)]['check_start']) {
@@ -425,23 +434,37 @@ io.sockets.on("connection", function(socket) {
             var time = roomIds[checkRoomIds(data.room)]['time'];
             var survivor = roomIds[checkRoomIds(data.room)]['survivor'];
             var citizen = roomIds[checkRoomIds(data.room)]['citizen'];
+            var mafia = roomIds[checkRoomIds(data.room)]['mafia'];
+
+            if(mafia >= citiezn) {
+                _day = 6;
+            }
+            else if(mafia === 0) {
+                _day = 7;
+            }
 
             switch(_day) {
-                // 밤 
+                // 밤 -> 낮
                 case 1: day = 2; abilityCast(data, survivor, citizen); time = setTime(day, survivor); 
                 io.to(data.room).emit("timer", time, day); break;
     
-                // 낮
+                // 낮 -> 재판
                 case 2: day = 3; time = setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
     
-                // 재판
+                // 재판 -> 최후의 발언
                 case 3: day = voteCast(data); time = setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
     
-                // 최후의 발언
+                // 최후의 발언 -> 찬/반
                 case 4: day = 5; time = setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
     
-                // 찬/반
+                // 찬/반 -> 밤
                 case 5: day = 1; oppositeCast(data); time = setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
+
+                // 마피아 승리
+                case 6: initGame(data); break;
+
+                // 시민 승리
+                case 7: initGame(data); break;
             }
 
             roomIds[checkRoomIds(data.room)]['day'] = day;
@@ -470,6 +493,8 @@ io.sockets.on("connection", function(socket) {
         // day    - 0: 시작 X, 1: 밤, 2: 낮, 3: 재판 4: 최후의 발언 5: 찬/반
 
         try {
+
+            console.log(roomIds);
 
             var role = loginIds[checkLoginIds(data.room, data.name)]['role'];
             var status = loginIds[checkLoginIds(data.room, data.name)]['status'];
