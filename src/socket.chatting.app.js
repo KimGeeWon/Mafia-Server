@@ -473,6 +473,7 @@ io.sockets.on("connection", function(socket) {
       
     socket.on("day", function(_day, data) {
 
+        try {
             var day = roomIds[checkRoomIds(data.room)]['day'];
             var time = roomIds[checkRoomIds(data.room)]['time'];
             var survivor = roomIds[checkRoomIds(data.room)]['survivor'];
@@ -504,9 +505,6 @@ io.sockets.on("connection", function(socket) {
                 roomIds[checkRoomIds(data.room)]['survivor'] = survivor;
                 roomIds[checkRoomIds(data.room)]['citizen'] = citizen;
             }
-
-        try {
-            
         }
         catch (exception) {
             console.log(exception);
