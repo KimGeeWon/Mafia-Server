@@ -285,7 +285,7 @@ https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.js
 
                 for(var num in user) {
                     output = "";
-                    select_id = `<li id='${user[num]['name']}'>`;
+                    select_id = `<li id="${user[num]['name']}" class="ui-block-c">`;
 
                     output += select_id;
                     output += "<h3>" + user[num]['name'] + "</h3>";
