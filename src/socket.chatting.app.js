@@ -327,8 +327,6 @@ function checkGameEnd(data) {
     var result = false;
     const mafia = roomIds[checkRoomIds(data.room)]['mafia'];
     const citizen = roomIds[checkRoomIds(data.room)]['citizen'];
-    
-    console.log("이게 뭔 일이야");
 
     if(mafia >= citizen) {
         initGame(data);
@@ -554,13 +552,21 @@ io.sockets.on("connection", function(socket) {
                     roomIds[checkRoomIds(data.room)]['time'] = setTime(1, io.sockets.adapter.rooms[data.room].length);
                     roomIds[checkRoomIds(data.room)]['check_start'] = 1;
 
-                    io.to(data.room).emit("start");
+                    var user = new Array();
 
                     for(var num in loginIds) {
                         if(loginIds[num]['room'] === data.room) {
                             io.to(loginIds[num]['socket']).emit("role", loginIds[num]['role']);
+
+                            user.push({
+                                name: loginIds[num]['user']
+                            });
                         }
                     }
+
+                    console.log(user);
+
+                    io.to(data.room).emit("start", user);
 
                     io.to(data.room).emit("timer", roomIds[checkRoomIds(data.room)]['time'], 
                     roomIds[checkRoomIds(data.room)]['day']);
