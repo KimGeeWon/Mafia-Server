@@ -2,7 +2,16 @@
 var http = require("http");
 var fs = require("fs");
 var socketio = require("socket.io");
-var img_path = "./img/default.png"
+var img_path = "./img/default.png";
+var img_path2 = "./img/mafia.png";
+var path = require("path");
+
+//var files = fs.readdirSync("./img");
+
+// var img_path2 = `./img/${files}`;
+
+// console.log(img_path);
+// console.log(img_path2);
 
 // 웹 서버를 생성한다.
 var server = http.createServer(function(request, response) {
@@ -28,6 +37,37 @@ var server = http.createServer(function(request, response) {
             response.end(data);
         }
     });
+
+    fs.readFile(img_path2, function(error, data) {
+        if(error) { 
+            console.log(error); 
+        }
+        else { 
+            response.writeHead(200, {"Content-Type" : img_path2});
+            response.end(data);
+        }
+    });
+
+    // fs.readdir("./img", function(error, filelist){
+
+    //     if(error) { 
+    //         console.log(error); 
+    //     }
+    //     for(var num in filelist) {
+    //         console.log(num);
+    //         console.log(`./img/${filelist[num]}`);
+
+    //         fs.readFile(`./img/${filelist[num]}`, function(error, data) {
+    //             if(error) { 
+    //                 console.log(error); 
+    //             }
+    //             else { 
+    //                 response.writeHead(200, {"Content-Type" : `./img/${filelist[num]}`});
+    //                 response.end(data);
+    //             }
+    //         });
+    //     }
+    // });
     
 }).listen(3000, function() {
     console.log("Server Running at http://127.0.0.1:3000");
