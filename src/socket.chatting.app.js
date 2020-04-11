@@ -2,6 +2,7 @@
 var http = require("http");
 var fs = require("fs");
 var socketio = require("socket.io");
+var img_path = "./img/default.png"
 
 // 웹 서버를 생성한다.
 var server = http.createServer(function(request, response) {
@@ -13,6 +14,17 @@ var server = http.createServer(function(request, response) {
         }
         else { 
             response.writeHead(200, {"Content-Type" : "text/html"});
+            response.end(data);
+        }
+    });
+
+    // img 파일을 읽는다.
+    fs.readFile(img_path, function(error, data) {
+        if(error) { 
+            console.log(error); 
+        }
+        else { 
+            response.writeHead(200, {"Content-Type" : img_path});
             response.end(data);
         }
     });
