@@ -21,13 +21,14 @@
         
     // HTML 문서가 모두 준비되면
     jQuery(document).ready(function() {
-https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.js
+        
         socket = io.connect();
 
         console.log(socket);
 
         // 채팅 창으로 접속 및 전환
         jQuery("#startChatting").click(function() {
+            
             socket.emit("access", {
                 room : jQuery("#inputRoom").val(),
                 name : jQuery("#inputName").val()
@@ -364,6 +365,18 @@ https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.js
 
             return(hour + " : " + min + " : " + sec);
         }
+
+        function startChatting() {
+            alert("asdf");
+
+            location.href = "#chatpage";
+            jQuery("#roomName").html(jQuery("#inputRoom").val());
+
+            socket.emit("access", {
+                room : jQuery("#inputRoom").val(),
+                name : jQuery("#inputName").val()
+            });
+        }
 </script>
 <style>
     #dead{
@@ -391,7 +404,8 @@ https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.js
             <label for="textinput">닉 네임</label>
             <input id="inputName" value=""/>
         </div>
-        <input type ="button" id="startChatting" value="방 입장"/>
+        <!-- <input type ="button" id="startChatting" value="방 입장"/> -->
+        <input type ="button" onclick="startChatting()" value="방 입장"/>
         </div>
 </div>
 <div data-role="page" id="chatpage">

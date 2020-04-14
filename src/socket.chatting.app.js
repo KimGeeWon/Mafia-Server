@@ -1,76 +1,31 @@
 // 모듈을 추출한다. - http://localhost:3000
 var http = require("http");
 var fs = require("fs");
-var socketio = require("socket.io");
+
 var img_path = "./img/default.png";
 var img_path2 = "./img/mafia.png";
-var path = require("path");
 
-//var files = fs.readdirSync("./img");
+var express = require('express');
+var app = express();
 
-// var img_path2 = `./img/${files}`;
+var server = http.createServer(app);
+var io = require('socket.io')(server);
 
-// console.log(img_path);
-// console.log(img_path2);
+app.listen(3000, function() {
+    console.log("Server Running at http://127.0.0.1:3000");
+});
 
-// 웹 서버를 생성한다.
-var server = http.createServer(function(request, response) {
-
+app.get('/', function(req, res) {
     // HTMLPage.html 파일을 읽는다.
     fs.readFile("node_chatting.html", function(error, data) {
         if(error) { 
             console.log(error); 
         }
         else { 
-            response.writeHead(200, {"Content-Type" : "text/html"});
-            response.end(data);
+            res.writeHead(200, {"Content-Type" : "text/html"});
+            res.end(data);
         }
     });
-
-    // img 파일을 읽는다.
-    fs.readFile(img_path, function(error, data) {
-        if(error) { 
-            console.log(error); 
-        }
-        else { 
-            response.writeHead(200, {"Content-Type" : img_path});
-            response.end(data);
-        }
-    });
-
-    fs.readFile(img_path2, function(error, data) {
-        if(error) { 
-            console.log(error); 
-        }
-        else { 
-            response.writeHead(200, {"Content-Type" : img_path2});
-            response.end(data);
-        }
-    });
-
-    // fs.readdir("./img", function(error, filelist){
-
-    //     if(error) { 
-    //         console.log(error); 
-    //     }
-    //     for(var num in filelist) {
-    //         console.log(num);
-    //         console.log(`./img/${filelist[num]}`);
-
-    //         fs.readFile(`./img/${filelist[num]}`, function(error, data) {
-    //             if(error) { 
-    //                 console.log(error); 
-    //             }
-    //             else { 
-    //                 response.writeHead(200, {"Content-Type" : `./img/${filelist[num]}`});
-    //                 response.end(data);
-    //             }
-    //         });
-    //     }
-    // });
-    
-}).listen(3000, function() {
-    console.log("Server Running at http://127.0.0.1:3000");
 });
 
 function randomRole(data, count) {
@@ -396,9 +351,6 @@ function checkGameEnd(data) {
     return result;
 }
 
-// 소켓 서버를 만든다.
-var io = socketio.listen(server);
-
 // 접속한 사용자의 방이름, 사용자명, socket.id값을 저장할 전역변수
 const loginIds = new Array();
 
@@ -409,6 +361,8 @@ io.sockets.on("connection", function(socket) {
 
     // 채팅방 입시 실행
     socket.on("access", function(data) {
+
+        console.log("asdf");
 
         if(!checkRoomIds(data.room)) {
             roomIds.push({
@@ -673,10 +627,8 @@ io.sockets.on("connection", function(socket) {
                             io.to(loginIds[num]['socket']).emit("message", data, role, status, day);
                         }
                     }
-
                     break;
                 }
-
                 break;
             }
         }
