@@ -1,0 +1,107 @@
+<html>
+<head>
+<title>:: socket.io.chat ::</title>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+<link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+<script type="text/javascript">
+
+    // HTML 문서가 모두 준비되면
+    jQuery(document).ready(function() {
+
+        var socket = io.connect();
+
+        // 채팅 창으로 접속 및 전환
+        jQuery("#startChatting").click(function() {
+            socket.emit("access", {
+                  room : jQuery("#inputRoom").val()
+                , name : jQuery("#inputName").val()
+            });
+
+            location.href = "#chatpage";
+            jQuery("#roomName").html(jQuery("#inputRoom").val());
+        });
+
+        // 이벤트를 연결합니다.
+        socket.on("message", function(data) {
+
+            pushMessage(data.name, data.message, data.date);
+        });
+
+        // 채팅방 접속 or 퇴장시 실행되는 알림 메세지
+        socket.on("contact", function(data) {
+        
+            jQuery("#userCount").html(data.count);
+            pushMessage(data.name, data.message, new Date().toUTCString());
+        });
+
+        // 채팅 메시지를 전송한다.
+        jQuery("#submit").click(function() {
+
+            socket.emit("message", {
+                  room : jQuery("#inputRoom").val()
+                , name : jQuery("#inputName").val()
+                , message : jQuery("#inputMessage").val()
+                , date : new Date().toUTCString()
+            });
+
+            jQuery("#inputMessage").val("");
+        });
+        });
+
+    function pushMessage(pushName, pushMsg, pushDate) {
+
+        // 입력할 문자 메시지
+        var output = "";
+        output += "<li>";
+        output += "<h3>" + pushName + "</h3>";
+        output += "<p>" + pushMsg + "</p>";
+        output += "<p>" + pushDate + "</p>";
+        output += "</li>";
+
+        // 문서 객체를 추가합니다.
+        jQuery(output).prependTo("#content");
+        jQuery("#content").listview('refresh');
+    };
+</script>
+</head>
+<body>
+<div data-role="page">
+    <div data-role="header">
+        <h1>Socket.io Chat</h1>
+    </div>
+    <div data-role="content">
+        <h3>입장할 방의 이름과 닉네임을 지정해 주세요</h3>
+        <div data-role="fieldcontain">
+            <label for="textinput">방 이름</label>
+            <input id="inputRoom" value=""/>
+        </div>
+        <div data-role="fieldcontain">
+            <label for="textinput">닉 네임</label>
+            <input id="inputName" value=""/>
+        </div>
+        <input type ="button" id="startChatting" value="채팅 시작"/>
+        </div>
+</div>
+<div data-role="page" id="chatpage">
+    <div data-role="header">
+        <h1>
+            <span id="roomName"></span>
+            &nbsp;:&nbsp;
+            <span id="userCount">0</span>
+        </h1>
+    </div>
+
+    <img src="/defaultImg" width="200">
+    <img src="/mafiaImg" width="200">
+
+    <div data-role="content">
+              <input id="inputMessage" value=""/>
+              <input type="button" id="submit" value="입력"/>
+              <ul id="content" data-role="listview" data-inset="true"></ul>
+    </div>
+</div>
+</body>
+</html>
