@@ -6,6 +6,10 @@ const server = require("http").createServer(app);
 // 소켓 서버를 만든다.
 const io = require("socket.io").listen(server);
 
+const mafiaFunc = require("../modules/mafiaFuncHandler");
+
+//const socketIOHandler = require('../modules/socketIO')(io);
+
 const PORT = 3000;
 
 app.get('/', (req, res) => {
@@ -51,9 +55,28 @@ server.listen(PORT, () => {
     console.log(`App is listening on port ${PORT}!`);
 });
 
+function checkRoomIds(room) {
+
+    for(var num in roomIds) {
+        if(roomIds[num]['room'] === room) {
+            return num;
+        } 
+    }
+
+    return false;
+}
+
+var start = 0;
 
 // 접속한 사용자의 방이름, 사용자명, socket.id값을 저장할 전역변수
-const loginIds = new Array();
+if(!start) {
+    var loginIds = new Array();
+}
+
+start = 1;
+
+// room의 day, time 등을 저장할 전역변수
+var roomIds = new Array();
 
 io.sockets.on("connection", function(socket) {
 
@@ -62,14 +85,34 @@ io.sockets.on("connection", function(socket) {
 
         // console.log(io.sockets.adapter.rooms);
 
-        socket.leave(socket.id);
+        if(!checkRoomIds(data.room)) {
+            roomIds.push({
+                room : data.room, // 방 이름
+                check_start : 0, // 0: 시작 X, 1: 시작
+                day : 0, // 0: 시작 X, 1: 밤, 2: 낮, 3: 재판 4: 최후의 발언 5: 찬/반
+                time : 0, // 밤: 25초, 낮: 생존자 * 15초, 재판: 15초, 최후의 발언: 15초, 찬/반: 10초
+                survivor : 0, // 시간 계산 용 생존자의 수
+                citizen : 0, // 시민의 수
+                mafia : 0, // 마피아의 수
+                elect : "", // 투표 당선자
+                tie_vote : false, // 투표가 동점인지 확인 // 0: 동점 X // 1: 동점 O
+            });
+        }
+
         socket.join(data.room);
 
         loginIds.push({
-              socket : socket.id  // 생성된 socket.id
-            , room : data.room  // 접속한 채팅방의 이름
-            , user : data.name   // 접속자의 유저의 이름
-        });
+            room : data.room,   // 접속한 채팅방의 이름
+            socket : socket.id, // 생성된 socket.id
+            user : data.name,   // 접속자의 유저의 이름
+            role : null,        // 접속자의 능력
+            do_role : false,    // 능력을 사용했는지 안 했는지 여부
+            status : 0,         // 0: 생존, 1: 사망
+            healed : false,     // 의사에게 힐을 받았는지 여부
+            targeted : false,   // 마피아에게 타겟이 됐는지 여부
+            do_vote : false,    // 투표를 한 여부
+            vote : 0          // 투표 수
+      });
 
         // 사용자가 페이지 새로고침시 loginIds 변수에 값이 누적되지 않게 동일한 사용자의 socket.id 값을 삭제한다.
         for(var num in loginIds) {
@@ -155,5 +198,22 @@ io.sockets.on("connection", function(socket) {
 
         // 클라이언트의 Message 이벤트를 발생시킨다.
         io.sockets.in(data.room).emit("message", data);
+
+        if(data.message === "ㅁ") {
+        
+            console.log("loginIds: ");
+            console.log(loginIds);
+            // console.log("roomIds: ");
+            // console.log(roomIds);
+        }
+
+        if(data.message === "시작") {
+            ids = mafiaFunc.randomRole(data, io.sockets.adapter.rooms[data.room].length, loginIds, roomIds);
+
+            loginIds = JSON.parse(JSON.stringify( ids.loginId));
+            roomIds = ids.roomId;
+
+            roomIds[checkRoomIds(data.room)]['survivor'] = io.sockets.adapter.rooms[data.room].length;
+        }
     });
 });
