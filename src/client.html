@@ -49,7 +49,47 @@
 
             jQuery("#inputMessage").val("");
         });
+
+        // 능력을 이미 사용한 경우 팝업
+        socket.on("used", function() {
+
+            alert(`이미 능력을 사용하였습니다`);
         });
+
+        // 경찰이 시민 능력 확인 후 결과 팝업
+        socket.on("police", function(name, role) {
+
+            if(role = "마피아") {
+                pushMessage(`공지`, `${name}님은 마피아가 맞습니다`, new Date().toUTCString(), "경찰", 0, 1);
+            }
+            else {
+                pushMessage(`공지`, `${name}님은 마피아가 아닙니다`, new Date().toUTCString(), "경찰", 0, 1);
+            }
+        });
+
+        // 마피아 능력으로 사망/치료 를 확인하기 위해 메시지 팝업
+        socket.on("mafia", function(name, healed) {
+            if(healed) {
+                pushMessage(`공지`, `${name}님이 의사의 치료를 받고 살아나셨습니다`, new Date().toUTCString(), "마피아", 0, 2);
+            }
+            else {
+                pushMessage(`공지`, `${name}님이 사망하셨습니다`, new Date().toUTCString(), "마피아", 0, 2);
+            }
+        });
+
+        // 누구에게 능력 사용했는지 메시지 팝업
+        socket.on("who", function(name, role) {
+
+            pushMessage(`공지`, `${name}님에게 능력을 사용했습니다`, new Date().toUTCString(), role, 0, 1);
+        });
+
+        // 능력 혹은 투표시 없는 유저를 지목했을 때
+        socket.on("none", function(name) {
+
+            alert(`${name}님은 없는 유저입니다`);
+        });
+    });
+
 
     function pushMessage(pushName, pushMsg, pushDate) {
 

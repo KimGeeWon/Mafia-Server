@@ -66,6 +66,16 @@ function checkRoomIds(room) {
     return false;
 }
 
+function checkLoginIds(room, name) {
+    for(var num in loginIds) {
+        if(loginIds[num]['room'] === room && loginIds[num]['user'] === name) {
+            return num;
+        } 
+    }
+
+    return false;
+}
+
 var start = 0;
 
 // 접속한 사용자의 방이름, 사용자명, socket.id값을 저장할 전역변수
@@ -203,12 +213,16 @@ io.sockets.on("connection", function(socket) {
         
             console.log("loginIds: ");
             console.log(loginIds);
-            // console.log("roomIds: ");
-            // console.log(roomIds);
+        }
+
+        if(data.message.startsWith('!')) {
+            ids = mafiaFunc.checkRole(data, loginIds, io);
+
+            loginIds = JSON.parse(JSON.stringify( ids.loginId));
         }
 
         if(data.message === "시작") {
-            ids = mafiaFunc.randomRole(data, io.sockets.adapter.rooms[data.room].length, loginIds, roomIds);
+            ids = mafiaFunc.randomRole(data, io.sockets.adapter.rooms[data.room].length, loginIds, roomIds, io);
 
             loginIds = JSON.parse(JSON.stringify( ids.loginId));
             roomIds = ids.roomId;

@@ -83,3 +83,75 @@ function checkRoomIds(room, roomId) {
 
     return false;
 }
+
+module.exports.checkRole = function checkRole(data, loginId, io) {
+    var myself;
+    var target;
+    var name = data.message.substring(1, data.message.length);
+
+    for(var num in loginId) {
+        if(loginId[num]['room'] === data.room && loginId[num]['user'] === data.name) {
+            var myself = loginId[num];
+        } 
+
+        if(loginId[num]['room'] === data.room && loginId[num]['user'] === name) {
+            var target = loginId[num];
+        } 
+    }
+
+    if(myself.do_role === true) {
+        socket.emit("used");
+    }
+    else {
+        switch(myself.role) {
+            case "마피아": mafiaAbility(target, myself, io); break;
+            case "경찰": policeAbility(name, target.role, io); break;
+            case "의사": doctorAbility(target, myself, io); break;
+            default: io.to(loginId[checkLoginIds(data.room, data.name, loginId)]['socket']).emit("none", myself.user);
+        }
+    
+        myself.do_role = true;
+    }
+
+    console.log(loginId);
+
+    return  {
+        loginId: loginId
+    };
+}
+
+function mafiaAbility(target, myself, io) {
+    
+    target.targeted = true;
+
+    io.to(myself['socket']).emit("who", target.user, myself.role);
+}
+
+function policeAbility(name, role, io) {
+    
+    //console.log(`${name}님은 ${입니다}`);
+
+    io.to(myself['socket']).emit("police", name, role);
+}
+
+function doctorAbility(target, myself, io) {
+
+    target.healed = true;
+
+    io.to(myself['socket']).emit("who", target.user, myself.role);
+}
+
+function checkLoginIds(room, name, loginId) {
+
+    console.log(loginId);
+
+    for(var num in loginId) {
+        if(loginId[num]['room'] === room && loginId[num]['user'] === name) {
+            return num;
+        } 
+    }
+
+    console.log(num);
+
+    return false;
+}
