@@ -40,6 +40,7 @@ module.exports.randomRole = function randomRole(data, count, loginIds, roomIds) 
 
     roomId[checkRoomIds(data.room, roomId)]['citizen'] = _people[1];
     roomId[checkRoomIds(data.room, roomId)]['mafia'] = _people[2];
+    roomIds[checkRoomIds(data.room, roomId)]['survivor'] = count;
 
     return { 
         loginId: loginId, 
@@ -154,4 +155,17 @@ function checkLoginIds(room, name, loginId) {
     console.log(num);
 
     return false;
+}
+
+
+module.exports.setTime = function setTime(day, survivor) {
+    
+    // 밤: 25초, 낮: 생존자 * 15초, 재판: 15초, 최후의 발언: 15초, 찬/반: 10초
+    switch(day) {
+        case 1: return 10;
+        case 2: return 15;//survivor * 15;
+        case 3: return 15;
+        case 4: return 15;
+        case 5: return 10;
+    }
 }
