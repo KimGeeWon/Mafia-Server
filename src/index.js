@@ -253,53 +253,119 @@ io.sockets.on("connection", function(socket) {
     // 메세지 전송 이벤트
     socket.on("message", function(data) {
 
-        // 클라이언트의 Message 이벤트를 발생시킨다.
-        io.sockets.in(data.room).emit("message", data);
+        try {
 
-        if(data.message === "ㅁ") {
-        
-            console.log("loginIds: ");
-            console.log(loginIds);
-        }
+            var role = loginIds[checkLoginIds(data.room, data.name)]['role'];
+            var status = loginIds[checkLoginIds(data.room, data.name)]['status'];
+            var day = roomIds[checkRoomIds(data.room)]['day'];
 
-        if(data.message.startsWith('!')) {
-            ids = mafiaFunc.checkRole(data, loginIds, io);
+            while(1) {
 
-            loginIds = JSON.parse(JSON.stringify( ids.loginId));
-        }
+                // 클라이언트의 Message 이벤트를 발생시킨다.
+                //io.sockets.in(data.room).emit("message", data, role, status, day);
 
-        if(data.message === "시작") {
+                if(data.message === "ㅁ") {
 
-            // 게임 시작시 능력 분배
-            ids = mafiaFunc.randomRole(data, io.sockets.adapter.rooms[data.room].length, loginIds, roomIds, io);
+                    console.log("loginIds: ");
+                    console.log(loginIds);
 
-            loginIds = JSON.parse(JSON.stringify( ids.loginId));
-            roomIds = ids.roomId;
-
-            // 날, 시간, 게임 시작 여부 변수
-            roomIds[checkRoomIds(data.room)]['day'] = 1;
-            roomIds[checkRoomIds(data.room)]['time'] = mafiaFunc.setTime(1, io.sockets.adapter.rooms[data.room].length);
-            roomIds[checkRoomIds(data.room)]['check_start'] = 1;
-
-            var user = new Array();
-
-            // 사용자의 능력을 팝업
-            for(var num in loginIds) {
-                if(loginIds[num]['room'] === data.room) {
-                    io.to(loginIds[num]['socket']).emit("role", loginIds[num]['role']);
-
-                    // user.push({
-                    //     name: loginIds[num]['user']
-                    // });
+                    break;
                 }
+
+                if(data.message === "사망") {
+
+                    loginIds[checkLoginIds(data.room, data.name)]['status'] = 1;
+
+                    break;
+                }
+
+                if(data.message.startsWith('!')) {
+                    ids = mafiaFunc.checkRole(data, loginIds, io);
+
+                    loginIds = JSON.parse(JSON.stringify( ids.loginId));
+
+                    break;
+                }
+
+                if(data.message === "시작") {
+
+                    // 게임 시작시 능력 분배
+                    ids = mafiaFunc.randomRole(data, io.sockets.adapter.rooms[data.room].length, loginIds, roomIds, io);
+
+                    loginIds = JSON.parse(JSON.stringify( ids.loginId));
+                    roomIds = ids.roomId;
+
+                    // 날, 시간, 게임 시작 여부 변수
+                    roomIds[checkRoomIds(data.room)]['day'] = 1;
+                    roomIds[checkRoomIds(data.room)]['time'] = mafiaFunc.setTime(1, io.sockets.adapter.rooms[data.room].length);
+                    roomIds[checkRoomIds(data.room)]['check_start'] = 1;
+
+                    var user = new Array();
+
+                    // 게임 시작 후 이전 채팅 삭제
+                    io.to(data.room).emit("start", user);
+
+                    // 사용자의 능력을 팝업
+                    for(var num in loginIds) {
+                        if(loginIds[num]['room'] === data.room) {
+                            io.to(loginIds[num]['socket']).emit("role", loginIds[num]['role']);
+
+                            // user.push({
+                            //     name: loginIds[num]['user']
+                            // });
+                        }
+                    }
+
+                    // 게임 타이머 시작
+                    io.to(data.room).emit("timer", roomIds[checkRoomIds(data.room)]['time'], 
+                    roomIds[checkRoomIds(data.room)]['day']);
+
+                    break;
+                }
+
+                // 밤을 제외한 생존자들이 채팅을 칠 때
+                if(status === 0 && day !== 1) {
+                    console.log("status 0");
+
+                    for(var num in loginIds) {
+                        if(loginIds[num]['room'] === data.room) {
+                            io.to(loginIds[num]['socket']).emit("message", data, role, status, day);
+                        } 
+                    }
+
+                    break;
+                }
+
+                // 마피아가 밤에 채팅할 경우
+                if(role === "마피아" && day === 1) {
+                    console.log("마피아");
+
+                    for(var num in loginIds) {
+                        if(loginIds[num]['room'] === data.room && loginIds[num]['role'] === "마피아") {
+                            io.to(loginIds[num]['socket']).emit("message", data, role, status, day);
+                        }
+                    }
+                    break;
+                }
+
+                // 사망한 사람이 채팅을 칠 때
+                if(status === 1) {
+                    console.log("status 1");
+
+                    for(var num in loginIds) {
+                        if(loginIds[num]['room'] === data.room && loginIds[num]['status'] === 1) {
+                            io.to(loginIds[num]['socket']).emit("message", data, role, status, day);
+                        }
+                    }
+
+                    break;
+                }
+
+                break;
             }
+        }
+        catch(exception) {
 
-            // 게임 시작 후 이전 채팅 삭제
-            io.to(data.room).emit("start", user);
-
-            // 게임 타이머 시작
-            io.to(data.room).emit("timer", roomIds[checkRoomIds(data.room)]['time'], 
-            roomIds[checkRoomIds(data.room)]['day']);
         }
     });
 });
