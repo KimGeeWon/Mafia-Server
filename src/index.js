@@ -238,12 +238,12 @@ io.sockets.on("connection", function(socket) {
                 time = mafiaFunc.setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
             }
 
-            // if(!end) {
-            //     roomIds[checkRoomIds(data.room)]['day'] = day;
-            //     roomIds[checkRoomIds(data.room)]['time'] = time;
-            //     roomIds[checkRoomIds(data.room)]['survivor'] = survivor;
-            //     roomIds[checkRoomIds(data.room)]['citizen'] = citizen;
-            // }
+            if(!end) {
+                roomIds[checkRoomIds(data.room)]['day'] = day;
+                roomIds[checkRoomIds(data.room)]['time'] = time;
+                roomIds[checkRoomIds(data.room)]['survivor'] = survivor;
+                roomIds[checkRoomIds(data.room)]['citizen'] = citizen;
+            }
         }
         catch (exception) {
             console.log(exception);
@@ -275,6 +275,7 @@ io.sockets.on("connection", function(socket) {
                 if(data.message === "ㄴ") {
                     
                     console.log("status: ", status);
+                    console.log("day: ", day);
                 }
 
                 if(data.message === "사망") {
