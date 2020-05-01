@@ -272,6 +272,11 @@ io.sockets.on("connection", function(socket) {
                     break;
                 }
 
+                if(data.message === "ㄴ") {
+                    
+                    console.log("status: ", status);
+                }
+
                 if(data.message === "사망") {
 
                     loginIds[checkLoginIds(data.room, data.name)]['status'] = 1;
@@ -280,7 +285,9 @@ io.sockets.on("connection", function(socket) {
                 }
 
                 if(data.message.startsWith('!')) {
-                    ids = mafiaFunc.checkRole(data, loginIds, io);
+                    // ids = mafiaFunc.checkRole(data, loginIds, io);
+
+                    ids = mafiaFunc.votePerson(data, loginIds, io);
 
                     loginIds = JSON.parse(JSON.stringify( ids.loginId));
 
@@ -323,8 +330,21 @@ io.sockets.on("connection", function(socket) {
                     break;
                 }
 
+                // 사망한 사람이 채팅을 칠 때
+                if(status === 1) {
+                    console.log("status 1");
+
+                    for(var num in loginIds) {
+                        if(loginIds[num]['room'] === data.room && loginIds[num]['status'] === 1) {
+                            io.to(loginIds[num]['socket']).emit("message", data, role, status, day);
+                        }
+                    }
+
+                    break;
+                }
+
                 // 밤을 제외한 생존자들이 채팅을 칠 때
-                if(status === 0 && day !== 1) {
+                if(day !== 1) {
                     console.log("status 0");
 
                     for(var num in loginIds) {
@@ -345,19 +365,6 @@ io.sockets.on("connection", function(socket) {
                             io.to(loginIds[num]['socket']).emit("message", data, role, status, day);
                         }
                     }
-                    break;
-                }
-
-                // 사망한 사람이 채팅을 칠 때
-                if(status === 1) {
-                    console.log("status 1");
-
-                    for(var num in loginIds) {
-                        if(loginIds[num]['room'] === data.room && loginIds[num]['status'] === 1) {
-                            io.to(loginIds[num]['socket']).emit("message", data, role, status, day);
-                        }
-                    }
-
                     break;
                 }
 

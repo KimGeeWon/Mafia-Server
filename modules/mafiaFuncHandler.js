@@ -114,8 +114,6 @@ module.exports.checkRole = function checkRole(data, loginId, io) {
         myself.do_role = true;
     }
 
-    console.log(loginId);
-
     return  {
         loginId: loginId
     };
@@ -144,19 +142,39 @@ function doctorAbility(target, myself, io) {
 
 function checkLoginIds(room, name, loginId) {
 
-    console.log(loginId);
-
     for(var num in loginId) {
         if(loginId[num]['room'] === room && loginId[num]['user'] === name) {
             return num;
         } 
     }
 
-    console.log(num);
-
     return false;
 }
 
+module.exports.votePerson = function votePerson(data, loginId, io) {
+
+    const name = data.message.substring(1, data.message.length);
+    const object = checkLoginIds(data.room, name, loginId);
+    const me = checkLoginIds(data.room, data.name, loginId);
+
+    if(object === false) {
+        io.to(data.room).emit("none", name);
+    }
+    else if(loginId[me]['do_vote']) {
+         io.to(loginId[me]['socket']).emit(
+             "vote", name, loginId[object]['do_vote']);
+    }
+    else {
+        io.to(data.room).emit("vote", name, loginId[me]['do_vote']);
+
+        loginId[object]['vote']++;
+        loginId[me]['do_vote'] = true;
+    }
+
+    return {
+        loginId: loginId
+    }
+}
 
 module.exports.setTime = function setTime(day, survivor) {
     

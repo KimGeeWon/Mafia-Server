@@ -116,12 +116,19 @@
             alert(`${name}님은 없는 유저입니다`);
         });
 
+        // 투표
+        socket.on("vote", function(name, do_vote) {
+            
+            if(do_vote) {
+                alert(`이미 투표하셨습니다.`);
+            }
+            else {
+                pushMessage(`공지`, `${name}님이 투표받았습니다.`, new Date().toUTCString(), "공지", 0, 3);
+            }
+        });
+
         // 게임 시작시 유저의 능력을 팝업
         socket.on("role", function(role) {
-
-            console.log(role);
-
-            console.log(role);
 
             pushMessage(`공지`, `당신은 ${role}입니다`, new Date().toUTCString(), role, 0, 1);
         });
@@ -296,8 +303,8 @@
         <h1 id="date">준비중</h1>
     </div>
 
-    <img src="/defaultImg" width="200">
-    <img src="/mafiaImg" width="200">
+    <!-- <img src="/defaultImg" width="200">
+    <img src="/mafiaImg" width="200"> -->
 
     <div data-role="content">
         <input id="inputMessage" value=""/>
