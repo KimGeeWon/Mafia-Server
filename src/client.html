@@ -127,8 +127,26 @@
             }
         });
 
+        // 찬성/반대
+        socket.on("opposite", function(opposite, do_vote) {
+
+            console.log(do_vote);
+
+            if(do_vote) {
+                alert(`이미 투표하셨습니다.`);
+            }
+            else if(opposite === "찬성") {
+                pushMessage(`공지`, `누군가가 투표에 찬성하였습니다.`, new Date().toUTCString(), "공지", 0, 5);
+            }
+            else if(opposite === "반대") {
+                pushMessage(`공지`, `누군가가 투표에 반대하였습니다.`, new Date().toUTCString(), "공지", 0, 5);
+            }
+        });
+
         // 게임 시작시 유저의 능력을 팝업
         socket.on("role", function(role) {
+
+            console.log(1);
 
             pushMessage(`공지`, `당신은 ${role}입니다`, new Date().toUTCString(), role, 0, 1);
         });

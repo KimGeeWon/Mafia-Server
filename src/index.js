@@ -288,7 +288,9 @@ io.sockets.on("connection", function(socket) {
                 if(data.message.startsWith('!')) {
                     // ids = mafiaFunc.checkRole(data, loginIds, io);
 
-                    ids = mafiaFunc.votePerson(data, loginIds, io);
+                    //ids = mafiaFunc.votePerson(data, loginIds, io);
+
+                    ids = mafiaFunc.oppositePerson(data, loginIds, roomIds, io);
 
                     loginIds = JSON.parse(JSON.stringify( ids.loginId));
 
@@ -297,8 +299,10 @@ io.sockets.on("connection", function(socket) {
 
                 if(data.message === "시작") {
 
+                    roomIds[checkRoomIds(data.room)]['elect'] = "김지원";
+
                     // 게임 시작시 능력 분배
-                    ids = mafiaFunc.randomRole(data, io.sockets.adapter.rooms[data.room].length, loginIds, roomIds, io);
+                    ids = mafiaFunc.randomRole(data, io.sockets.adapter.rooms[data.room].length, loginIds, roomIds);
 
                     loginIds = JSON.parse(JSON.stringify( ids.loginId));
                     roomIds = ids.roomId;

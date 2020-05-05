@@ -1,13 +1,4 @@
-// 접속한 사용자의 방이름, 사용자명, socket.id값을 저장할 전역변수
-var loginId = new Array();
-
-// room의 day, time 등을 저장할 전역변수
-var roomId = new Array();
-
-module.exports.randomRole = function randomRole(data, count, loginIds, roomIds) {
-
-    loginId = loginIds;
-    roomId = roomIds;
+module.exports.randomRole = function randomRole(data, count, loginId, roomId) {
 
     const jobList = checkPerson(count);
     const randNum = new Array(count);
@@ -38,9 +29,9 @@ module.exports.randomRole = function randomRole(data, count, loginIds, roomIds) 
         }
     }
 
-    roomId[checkRoomIds(data.room, roomId)]['citizen'] = _people[1];
-    roomId[checkRoomIds(data.room, roomId)]['mafia'] = _people[2];
-    roomIds[checkRoomIds(data.room, roomId)]['survivor'] = count;
+    roomId[checkRoomId(data.room, roomId)]['citizen'] = _people[1];
+    roomId[checkRoomId(data.room, roomId)]['mafia'] = _people[2];
+    roomId[checkRoomId(data.room, roomId)]['survivor'] = count;
 
     return { 
         loginId: loginId, 
@@ -74,7 +65,7 @@ function insertRole(data) {
     }
 }
 
-function checkRoomIds(room, roomId) {
+function checkRoomId(room, roomId) {
 
     for(var num in roomId) {
         if(roomId[num]['room'] === room) {
@@ -108,7 +99,7 @@ module.exports.checkRole = function checkRole(data, loginId, io) {
             case "마피아": mafiaAbility(target, myself, io); break;
             case "경찰": policeAbility(name, target.role, io); break;
             case "의사": doctorAbility(target, myself, io); break;
-            default: io.to(loginId[checkLoginIds(data.room, data.name, loginId)]['socket']).emit("none", myself.user);
+            default: io.to(loginId[checkLoginId(data.room, data.name, loginId)]['socket']).emit("none", myself.user);
         }
     
         myself.do_role = true;
@@ -140,7 +131,7 @@ function doctorAbility(target, myself, io) {
     io.to(myself['socket']).emit("who", target.user, myself.role);
 }
 
-function checkLoginIds(room, name, loginId) {
+function checkLoginId(room, name, loginId) {
 
     for(var num in loginId) {
         if(loginId[num]['room'] === room && loginId[num]['user'] === name) {
@@ -154,8 +145,8 @@ function checkLoginIds(room, name, loginId) {
 module.exports.votePerson = function votePerson(data, loginId, io) {
 
     const name = data.message.substring(1, data.message.length);
-    const object = checkLoginIds(data.room, name, loginId);
-    const me = checkLoginIds(data.room, data.name, loginId);
+    const object = checkLoginId(data.room, name, loginId);
+    const me = checkLoginId(data.room, data.name, loginId);
 
     if(object === false) {
         io.to(data.room).emit("none", name);
@@ -169,6 +160,36 @@ module.exports.votePerson = function votePerson(data, loginId, io) {
 
         loginId[object]['vote']++;
         loginId[me]['do_vote'] = true;
+    }
+
+    return {
+        loginId: loginId
+    }
+}
+
+module.exports.oppositePerson = function oppositePerson(data, loginId, roomId, io) {
+    
+    const opposite = data.message.substring(1, data.message.length);
+
+    const num = checkLoginId(data.room, 
+        roomId[checkRoomId(data.room, roomId)]['elect'], loginId);
+
+    if(loginId[checkLoginId(data.room, data.name, loginId)]['do_vote']) {
+
+        io.to(loginId[checkLoginId(data.room, data.name, loginId)]['socket']).emit("opposite", opposite, loginId[checkLoginId(data.room, data.name, loginId)]['do_vote']);
+    }
+    else if(opposite === "찬성") {
+
+        io.to(data.room).emit("opposite", opposite, loginId[checkLoginId(data.room, data.name, loginId)]['do_vote']);
+
+        loginId[num]['vote']++;
+        loginId[checkLoginId(data.room, data.name, loginId)]['do_vote'] = true;
+    }
+    else if(opposite === "반대") {
+        io.to(data.room).emit("opposite", opposite, loginId[checkLoginId(data.room, data.name, loginId)]['do_vote']);
+
+        loginId[num]['vote']--;
+        loginId[checkLoginId(data.room, data.name, loginId)]['do_vote'] = true;
     }
 
     return {
