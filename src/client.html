@@ -160,6 +160,25 @@
 
             // pushPlayerStatus(user);
         });
+
+        // 채팅방 접속 or 퇴장시 실행되는 알림 메세지
+        socket.on("initGame", function(win) {
+            
+            var msg = "";
+
+            jQuery("#content").empty();
+
+            date.innerHTML = "준비중";
+
+            if(win === "시민") {
+                msg = "시민 팀의 승리로 게임이 종료되었습니다!"
+            }
+            else if(win === "마피아") {
+                msg = "마피아 팀의 승리로 게임이 종료되었습니다!"
+            }
+
+            pushMessage(`공지`, msg, new Date().toUTCString(), "", 0);
+        });
     });
 
 
