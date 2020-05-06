@@ -163,7 +163,8 @@ module.exports.votePerson = function votePerson(data, loginId, io) {
     }
 
     return {
-        loginId: loginId
+        loginId: loginId,
+        roomId: null
     }
 }
 
@@ -193,7 +194,92 @@ module.exports.oppositePerson = function oppositePerson(data, loginId, roomId, i
     }
 
     return {
-        loginId: loginId
+        loginId: loginId,
+        roomId: null
+    }
+}
+
+module.exports.checkGameEnd = function checkGameEnd(data, loginId, roomId) {
+    var isEnd = true;
+    const mafia = roomId[checkRoomId(data.room)]['mafia'];
+    const citizen = roomId[checkRoomId(data.room)]['citizen'];
+
+    var Id = initGame(data);
+
+    loginId = JSON.parse(JSON.stringify(Id.loginId));
+    roomId = Id.roomId;
+
+    if(mafia >= citizen) {
+        io.to(data.room).emit("initGame", "마피아");
+    }
+    else if(mafia === 0) {
+        io.to(data.room).emit("initGame", "시민");
+    }
+
+    return {
+        isEnd: isEnd,
+        loginId: loginId,
+        roomId: roomId
+    }
+}
+
+function initGame(data, roomId, loginId) {
+
+    console.log("게임 초기화");
+
+    roomId[checkRoomId(data.room, roomId)]['check_start'] = 0;
+    roomId[checkRoomId(data.room, roomId)]['day'] = 0;
+    roomId[checkRoomId(data.room, roomId)]['time'] = 0;
+    roomId[checkRoomId(data.room, roomId)]['survivor'] = 0;
+    roomId[checkRoomId(data.room, roomId)]['citizen'] = 0;
+    roomId[checkRoomId(data.room, roomId)]['mafia'] = 0;
+    roomId[checkRoomId(data.room, roomId)]['elect'] = "";
+    roomIs[checkRoomId(data.room, roomId)]['tie_vote'] = false;
+
+    for(var num in loginId) {
+        if(loginId[num]['room'] === data.room) {
+            loginId[num]['role'] = null;
+            loginId[num]['do_role'] = false;
+            loginId[num]['status'] = 0;
+            loginId[num]['healed'] = false;
+            loginId[num]['targeted'] = false;
+            loginId[num]['do_vote'] = false;
+            loginId[num]['vote'] = 0;
+        }
+    }
+
+    return {
+        loginId: loginId,
+        roomId: roomId
+    }
+}
+
+module.exports.abilityCast = function abilityCast(data, survivor, citizen, loginId, roomId, io) {
+
+    for(var num in loginId) {
+        if(loginId[num]['room'] === data.room && loginId[num]['targeted'] === true) {
+            if(loginId[num]['healed'] === true) {
+                io.to(data.room).emit("mafia", loginId[num]['user'], true);
+            }
+            else {
+                io.to(data.room).emit("mafia", loginId[num]['user'], false);
+                loginId[num]['status'] = 1;
+                survivor--;
+                citizen--;
+            }
+        }
+
+        loginId[num]['do_role'] = false;
+        loginId[num]['targeted'] = false;
+        loginId[num]['healed'] = false;
+    }
+
+    roomId[checkRoomId(data.room)]['survivor'] = survivor;
+    roomId[checkRoomId(data.room)]['citizen'] = citizen;
+
+    return {
+        loginId: loginId,
+        roomId: roomId
     }
 }
 

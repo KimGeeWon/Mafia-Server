@@ -76,6 +76,14 @@ function checkLoginIds(room, name) {
     return false;
 }
 
+function copyIds(ids) {
+
+    loginIds = JSON.parse(JSON.stringify(ids.loginId));
+    if(ids.roomId != null) {
+        roomIds = ids.roomId;
+    }
+}
+
 var start = 0;
 
 // 접속한 사용자의 방이름, 사용자명, socket.id값을 저장할 전역변수
@@ -87,6 +95,8 @@ start = 1;
 
 // room의 day, time 등을 저장할 전역변수
 var roomIds = new Array();
+
+var ids;
 
 io.sockets.on("connection", function(socket) {
 
@@ -216,8 +226,25 @@ io.sockets.on("connection", function(socket) {
 
             switch(_day) {
                 // 밤 -> 낮
-                case 1: day = 2; /*abilityCast(data, survivor, citizen); if(checkGameEnd(data)) { end = true; break; };*/ 
-                time = mafiaFunc.setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
+                case 1: 
+                    day = 2; 
+
+                    ids = mafiaFuc.abilityCast(data, survivor, citizen, loginIds, roomIds, io); 
+
+                    copyIds(ids);
+
+                    var endData = mafiaFuc.checkGameEnd(data, loginIds, roomIds);
+
+                    if(endData.isEnd) {  
+                        copyIds(endData);
+
+                        end = true;
+                        
+                        break; 
+                    };
+
+                    time = mafiaFunc.setTime(day, survivor); io.to(data.room).emit("timer", time, day); 
+                    break;
     
                 // 낮 -> 재판
                 case 2: day = 3; 
@@ -292,7 +319,7 @@ io.sockets.on("connection", function(socket) {
 
                     ids = mafiaFunc.oppositePerson(data, loginIds, roomIds, io);
 
-                    loginIds = JSON.parse(JSON.stringify( ids.loginId));
+                    copyIds(ids);
 
                     break;
                 }
@@ -304,8 +331,7 @@ io.sockets.on("connection", function(socket) {
                     // 게임 시작시 능력 분배
                     ids = mafiaFunc.randomRole(data, io.sockets.adapter.rooms[data.room].length, loginIds, roomIds);
 
-                    loginIds = JSON.parse(JSON.stringify( ids.loginId));
-                    roomIds = ids.roomId;
+                    copyIds(ids);
 
                     // 날, 시간, 게임 시작 여부 변수
                     roomIds[checkRoomIds(data.room)]['day'] = 1;
