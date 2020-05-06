@@ -199,12 +199,12 @@ module.exports.oppositePerson = function oppositePerson(data, loginId, roomId, i
     }
 }
 
-module.exports.checkGameEnd = function checkGameEnd(data, loginId, roomId) {
+module.exports.checkGameEnd = function checkGameEnd(data, loginId, roomId, io) {
     var isEnd = true;
-    const mafia = roomId[checkRoomId(data.room)]['mafia'];
-    const citizen = roomId[checkRoomId(data.room)]['citizen'];
+    const mafia = roomId[checkRoomId(data.room, roomId)]['mafia'];
+    const citizen = roomId[checkRoomId(data.room, roomId)]['citizen'];
 
-    var Id = initGame(data);
+    var Id = initGame(data, loginId, roomId);
 
     loginId = JSON.parse(JSON.stringify(Id.loginId));
     roomId = Id.roomId;
@@ -223,7 +223,7 @@ module.exports.checkGameEnd = function checkGameEnd(data, loginId, roomId) {
     }
 }
 
-function initGame(data, roomId, loginId) {
+function initGame(data, loginId, roomId) {
 
     console.log("게임 초기화");
 
@@ -234,7 +234,7 @@ function initGame(data, roomId, loginId) {
     roomId[checkRoomId(data.room, roomId)]['citizen'] = 0;
     roomId[checkRoomId(data.room, roomId)]['mafia'] = 0;
     roomId[checkRoomId(data.room, roomId)]['elect'] = "";
-    roomIs[checkRoomId(data.room, roomId)]['tie_vote'] = false;
+    roomId[checkRoomId(data.room, roomId)]['tie_vote'] = false;
 
     for(var num in loginId) {
         if(loginId[num]['room'] === data.room) {
@@ -274,8 +274,8 @@ module.exports.abilityCast = function abilityCast(data, survivor, citizen, login
         loginId[num]['healed'] = false;
     }
 
-    roomId[checkRoomId(data.room)]['survivor'] = survivor;
-    roomId[checkRoomId(data.room)]['citizen'] = citizen;
+    roomId[checkRoomId(data.room, roomId)]['survivor'] = survivor;
+    roomId[checkRoomId(data.room, roomId)]['citizen'] = citizen;
 
     return {
         loginId: loginId,

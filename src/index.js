@@ -213,7 +213,7 @@ io.sockets.on("connection", function(socket) {
         }
       });
 
-      socket.on("day", function(_day, data) {
+    socket.on("day", function(_day, data) {
 
         try {
             var day = roomIds[checkRoomIds(data.room)]['day'];
@@ -227,13 +227,15 @@ io.sockets.on("connection", function(socket) {
             switch(_day) {
                 // 밤 -> 낮
                 case 1: 
-                    day = 2; 
+                    day = 2;
 
-                    ids = mafiaFuc.abilityCast(data, survivor, citizen, loginIds, roomIds, io); 
+                    console.log(survivor);
+
+                    ids = mafiaFunc.abilityCast(data, survivor, citizen, loginIds, roomIds, io); 
 
                     copyIds(ids);
 
-                    var endData = mafiaFuc.checkGameEnd(data, loginIds, roomIds);
+                    var endData = mafiaFunc.checkGameEnd(data, loginIds, roomIds, io);
 
                     if(endData.isEnd) {  
                         copyIds(endData);
@@ -296,6 +298,9 @@ io.sockets.on("connection", function(socket) {
                     console.log("loginIds: ");
                     console.log(loginIds);
 
+                    console.log("roomIds: ");
+                    console.log(roomIds);
+
                     break;
                 }
 
@@ -317,7 +322,12 @@ io.sockets.on("connection", function(socket) {
 
                     //ids = mafiaFunc.votePerson(data, loginIds, io);
 
-                    ids = mafiaFunc.oppositePerson(data, loginIds, roomIds, io);
+                    switch(day) {
+                        case 1: ids = mafiaFunc.checkRole(data, loginIds, io); break;
+                        case 3: ids = mafiaFunc.votePerson(data, loginIds, io); break;
+                        case 5: ids = mafiaFunc.oppositePerson(data, loginIds, roomIds, io); break;
+                        default: break;
+                    }
 
                     copyIds(ids);
 
