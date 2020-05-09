@@ -256,7 +256,11 @@ io.sockets.on("connection", function(socket) {
     
                 // 재판 -> 최후의 발언
                 case 3: 
-                    day = mafiaFunc.voteCast(data, loginIds, roomIds, io);
+                    ids = mafiaFunc.voteCast(data, loginIds, roomIds, io);
+
+                    day = ids.day;
+
+                    copyIds(ids);
                 
                     time = mafiaFunc.setTime(day, survivor); 
                 
@@ -292,11 +296,14 @@ io.sockets.on("connection", function(socket) {
             var role = loginIds[checkLoginIds(data.room, data.name)]['role'];
             var status = loginIds[checkLoginIds(data.room, data.name)]['status'];
             var day = roomIds[checkRoomIds(data.room)]['day'];
+            var elect = roomIds[checkRoomIds(data.room)]['elect'];
 
             while(1) {
 
                 // 클라이언트의 Message 이벤트를 발생시킨다.
                 //io.sockets.in(data.room).emit("message", data, role, status, day);
+
+                console.log(day);
 
                 if(data.message === "ㅁ") {
 
@@ -337,8 +344,6 @@ io.sockets.on("connection", function(socket) {
                 }
 
                 if(data.message === "시작") {
-
-                    roomIds[checkRoomIds(data.room)]['elect'] = "김지원";
 
                     // 게임 시작시 능력 분배
                     ids = mafiaFunc.randomRole(data, io.sockets.adapter.rooms[data.room].length, loginIds, roomIds);
@@ -388,10 +393,10 @@ io.sockets.on("connection", function(socket) {
 
                 // 최후의 반론때 용의자가 채팅을 칠 때
                 if(day == 4) {
-                    console.log("status 0");
+                    console.log("day 4");
 
                     for(var num in loginIds) {
-                        if(loginIds[num]['room'] === data.room) {
+                        if(loginIds[num]['room'] === data.room && elect == data.name) {
                             io.to(loginIds[num]['socket']).emit("message", data, role, status, day);
                         } 
                     }

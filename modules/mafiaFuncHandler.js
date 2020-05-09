@@ -288,14 +288,65 @@ module.exports.abilityCast = function abilityCast(data, survivor, citizen, login
     }
 }
 
+module.exports.voteCast = function voteCast(data, loginId, roomId, io) {
+
+    var elect = "";
+    var tie_vote;
+    var compare = 0;
+
+    for(var num in loginId) {
+        if(loginId[num]['room'] === data.room) {
+            if(loginId[num]['vote'] > compare) {
+                elect = loginId[num]['user'];
+                compare = loginId[num]['vote'];
+                tie_vote = false;
+            }
+            else if(loginId[num]['vote'] === compare) {
+                tie_vote = true;
+            }
+        }
+
+        loginId[num]['vote'] = 0;
+        loginId[num]['do_vote'] = false;
+    }
+
+    if(tie_vote) {
+        elect = "";
+
+        io.to(data.room).emit("voteCast", elect, tie_vote);
+
+        roomId[checkRoomId(data.room, roomId)]['elect'] = elect;
+
+        roomId[checkRoomId(data.room, roomId)]['tie_vote'] = tie_vote;
+
+        return {
+            day: 1,
+            loginId: loginId,
+            roomId: roomId
+        }
+    }
+
+    roomId[checkRoomId(data.room, roomId)]['elect'] = elect;
+
+    roomId[checkRoomId(data.room, roomId)]['tie_vote'] = tie_vote;
+
+    io.to(data.room).emit("voteCast", elect, tie_vote);
+
+    return {
+        day: 4,
+        loginId: loginId,
+        roomId: roomId
+    }
+}
+
 module.exports.setTime = function setTime(day, survivor) {
     
     // 밤: 25초, 낮: 생존자 * 15초, 재판: 15초, 최후의 발언: 15초, 찬/반: 10초
     switch(day) {
-        case 1: return 10;
-        case 2: return 15;//survivor * 15;
-        case 3: return 15;
-        case 4: return 15;
-        case 5: return 10;
+        case 1: return 5;//10;
+        case 2: return 5;//15;//survivor * 15;
+        case 3: return 5;//15;
+        case 4: return 5;//15;
+        case 5: return 5;//10;
     }
 }
