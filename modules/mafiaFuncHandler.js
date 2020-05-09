@@ -118,8 +118,6 @@ function mafiaAbility(target, myself, io) {
 }
 
 function policeAbility(name, role, io) {
-    
-    //console.log(`${name}님은 ${입니다}`);
 
     io.to(myself['socket']).emit("police", name, role);
 }
@@ -200,21 +198,28 @@ module.exports.oppositePerson = function oppositePerson(data, loginId, roomId, i
 }
 
 module.exports.checkGameEnd = function checkGameEnd(data, loginId, roomId, io) {
-    var isEnd = true;
+    var isEnd = false;
     const mafia = roomId[checkRoomId(data.room, roomId)]['mafia'];
     const citizen = roomId[checkRoomId(data.room, roomId)]['citizen'];
+
+    if(mafia >= citizen) {
+        isEnd = true;
+        io.to(data.room).emit("initGame", "마피아");
+    }
+    else if(mafia === 0) {
+        isEnd = true;
+        io.to(data.room).emit("initGame", "시민");
+    }
+    else {
+        return {
+            isEnd: isEnd
+        }
+    }
 
     var Id = initGame(data, loginId, roomId);
 
     loginId = JSON.parse(JSON.stringify(Id.loginId));
     roomId = Id.roomId;
-
-    if(mafia >= citizen) {
-        io.to(data.room).emit("initGame", "마피아");
-    }
-    else if(mafia === 0) {
-        io.to(data.room).emit("initGame", "시민");
-    }
 
     return {
         isEnd: isEnd,

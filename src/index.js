@@ -229,8 +229,6 @@ io.sockets.on("connection", function(socket) {
                 case 1: 
                     day = 2;
 
-                    console.log(survivor);
-
                     ids = mafiaFunc.abilityCast(data, survivor, citizen, loginIds, roomIds, io); 
 
                     copyIds(ids);
@@ -249,13 +247,20 @@ io.sockets.on("connection", function(socket) {
                     break;
     
                 // 낮 -> 재판
-                case 2: day = 3; 
-                time = mafiaFunc.setTime(day, survivor); 
-                io.to(data.room).emit("timer", time, day); break;
+                case 2: 
+                    day = 3; 
+
+                    time = mafiaFunc.setTime(day, survivor); 
+
+                    io.to(data.room).emit("timer", time, day); break;
     
                 // 재판 -> 최후의 발언
-                case 3: /*day = voteCast(data);*/ time = mafiaFunc.setTime(day, survivor); 
-                io.to(data.room).emit("timer", time, day); break;
+                case 3: 
+                    day = mafiaFunc.voteCast(data, loginIds, roomIds, io);
+                
+                    time = mafiaFunc.setTime(day, survivor); 
+                
+                    io.to(data.room).emit("timer", time, day); break;
     
                 // 최후의 발언 -> 찬/반
                 case 4: day = 5; 
@@ -318,9 +323,6 @@ io.sockets.on("connection", function(socket) {
                 }
 
                 if(data.message.startsWith('!')) {
-                    // ids = mafiaFunc.checkRole(data, loginIds, io);
-
-                    //ids = mafiaFunc.votePerson(data, loginIds, io);
 
                     switch(day) {
                         case 1: ids = mafiaFunc.checkRole(data, loginIds, io); break;
@@ -379,6 +381,19 @@ io.sockets.on("connection", function(socket) {
                         if(loginIds[num]['room'] === data.room && loginIds[num]['status'] === 1) {
                             io.to(loginIds[num]['socket']).emit("message", data, role, status, day);
                         }
+                    }
+
+                    break;
+                }
+
+                // 최후의 반론때 용의자가 채팅을 칠 때
+                if(day == 4) {
+                    console.log("status 0");
+
+                    for(var num in loginIds) {
+                        if(loginIds[num]['room'] === data.room) {
+                            io.to(loginIds[num]['socket']).emit("message", data, role, status, day);
+                        } 
                     }
 
                     break;
