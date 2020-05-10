@@ -267,13 +267,34 @@ io.sockets.on("connection", function(socket) {
                     io.to(data.room).emit("timer", time, day); break;
     
                 // 최후의 발언 -> 찬/반
-                case 4: day = 5; 
-                time = mafiaFunc.setTime(day, survivor); 
-                io.to(data.room).emit("timer", time, day); break;
+                case 4: 
+                    day = 5; 
+
+                    time = mafiaFunc.setTime(day, survivor); 
+
+                    io.to(data.room).emit("timer", time, day); break;
     
                 // 찬/반 -> 밤
-                case 5: day = 1; /*oppositeCast(data); if(checkGameEnd(data)){ end = true; break; };*/ 
-                time = mafiaFunc.setTime(day, survivor); io.to(data.room).emit("timer", time, day); break;
+                case 5: 
+                    day = 1; 
+                    
+                    ids = mafiaFunc.oppositeCast(data, loginIds, roomIds, io);
+
+                    copyIds(ids); 
+                    
+                    var endData = mafiaFunc.checkGameEnd(data, loginIds, roomIds, io);
+
+                    if(endData.isEnd) {  
+                        copyIds(endData);
+
+                        end = true;
+                        
+                        break; 
+                    };
+
+                    time = mafiaFunc.setTime(day, survivor); 
+                     
+                    io.to(data.room).emit("timer", time, day); break;
             }
 
             if(!end) {

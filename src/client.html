@@ -154,6 +154,20 @@
             }
         });
 
+        // 찬성/반대 결과 팝업
+        socket.on("oppositeCast", function(vote, name) {
+
+            if(vote === 1) {
+                pushMessage(`공지`, `투표가 찬성으로 마무리되어 ${name}님이 처형되었습니다`, new Date().toUTCString(), "공지", 0, 4);
+            }
+            else if(vote === 0){
+                pushMessage(`공지`, `동률표가 일어나 투표가 마무리되었습니다.`, new Date().toUTCString(), "공지", 0, 4);
+            }
+            else if(vote === -1){
+                pushMessage(`공지`, `투표가 반대로 마무리되었습니다.`, new Date().toUTCString(), "공지", 0, 4);
+            }
+        });
+
         // 게임 시작시 유저의 능력을 팝업
         socket.on("role", function(role) {
 

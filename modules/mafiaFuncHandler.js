@@ -339,6 +339,40 @@ module.exports.voteCast = function voteCast(data, loginId, roomId, io) {
     }
 }
 
+module.exports.oppositeCast = function oppositeCast(data, loginId, roomId, io) {
+
+    const name = roomId[checkRoomId(data.room, roomId)]['elect'];
+
+    const num = checkLoginId(data.room, name, loginId);
+
+    const role = loginId[num]['role'];
+
+    const vote = loginId[num]['vote'];
+
+    if(vote > 0) {
+        loginId[num]['status'] = 1;
+        roomId[checkRoomId(data.room, roomId)]['survivor']--;
+        if(role === "마피아") {
+            roomId[checkRoomId(data.room, roomId)]['mafia']--;
+        }
+        else {
+            roomId[checkRoomId(data.room, roomId)]['citizen']--;
+        }
+        io.to(data.room).emit("oppositeCast", 1, name);
+    }
+    else if(vote === 0) {
+        io.to(data.room).emit("oppositeCast", 0, name);
+    }
+    else if(vote === 0) {
+        io.to(data.room).emit("oppositeCast", -1, name);
+    }
+
+    return {
+        loginId: loginId,
+        roomId: roomId
+    }
+}
+
 module.exports.setTime = function setTime(day, survivor) {
     
     // 밤: 25초, 낮: 생존자 * 15초, 재판: 15초, 최후의 발언: 15초, 찬/반: 10초
