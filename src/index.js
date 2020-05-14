@@ -38,9 +38,48 @@ app.get('/defaultImg', (req, res) => {
     });
 });
 
+app.get('/citizenImg', (req, res) => {
+
+    fs.readFile("./img/citizen.png", function(error, data) {
+        if(error) { 
+            console.log(error); 
+        }
+        else { 
+            res.writeHead(200, {"Content-Type" : "text/html"});
+            res.end(data);
+        }
+    });
+});
+
 app.get('/mafiaImg', (req, res) => {
 
     fs.readFile("./img/mafia.png", function(error, data) {
+        if(error) { 
+            console.log(error); 
+        }
+        else { 
+            res.writeHead(200, {"Content-Type" : "text/html"});
+            res.end(data);
+        }
+    });
+});
+
+app.get('/doctorImg', (req, res) => {
+
+    fs.readFile("./img/doctor.png", function(error, data) {
+        if(error) { 
+            console.log(error); 
+        }
+        else { 
+            res.writeHead(200, {"Content-Type" : "text/html"});
+            res.end(data);
+        }
+    });
+});
+
+app.get('/policeImg', (req, res) => {
+
+    fs.readFile("./img/police.png", function(error, data) {
         if(error) { 
             console.log(error); 
         }
@@ -378,19 +417,26 @@ io.sockets.on("connection", function(socket) {
 
                     var user = new Array();
 
-                    // 게임 시작 후 이전 채팅 삭제
-                    io.to(data.room).emit("start", user);
+                    // 전체 채팅 청소
+                    io.to(data.room).emit("clear");
+
+                    // 게임 시작 공지 팝업
+                    io.to(data.room).emit("start");
 
                     // 사용자의 능력을 팝업
                     for(var num in loginIds) {
                         if(loginIds[num]['room'] === data.room) {
                             io.to(loginIds[num]['socket']).emit("role", loginIds[num]['role']);
 
-                            // user.push({
-                            //     name: loginIds[num]['user']
-                            // });
+                            user.push({
+                                name: loginIds[num]['user'],
+                                role: loginIds[num]['role']
+                            });
                         }
                     }
+
+                    // 유저 리스트 팝업
+                    io.to(data.room).emit("listPop", user);
 
                     // 게임 타이머 시작
                     io.to(data.room).emit("timer", roomIds[checkRoomIds(data.room)]['time'], 

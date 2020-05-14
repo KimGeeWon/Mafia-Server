@@ -171,19 +171,26 @@
         // 게임 시작시 유저의 능력을 팝업
         socket.on("role", function(role) {
 
-            console.log(1);
-
             pushMessage(`공지`, `당신은 ${role}입니다`, new Date().toUTCString(), role, 0, 1);
         });
 
-        // 게임 시작때 채팅 초기화
-        socket.on("start", function(user) {
+
+        // 게임 시작시 채팅 초기화
+        socket.on("clear", function() {
             
             jQuery("#content").empty();
+        });
 
+        // 게임 시작시 시작했다고 공지
+        socket.on("start", function() {
+            
             pushMessage(`공지`, `게임이 시작했습니다.`, new Date().toUTCString(), "", 0);
+        });
 
-            // pushPlayerStatus(user);
+        // 게임 시작시 유저 리스트 팝업
+        socket.on("listPop", function(user) {
+
+            pushPlayerStatus(user);
         });
 
         // 채팅방 접속 or 퇴장시 실행되는 알림 메세지
@@ -208,6 +215,8 @@
 
 
     function pushMessage(pushName, pushMsg, pushDate, role, status, day) {
+
+        console.log(pushDate);
 
         // 입력할 문자 메시지
         var output = "";
@@ -239,12 +248,54 @@
         output += "<p>" + pushDate + "</p>";
         output += "</li>";
 
+        console.log(output);
+
         // 문서 객체를 추가합니다.
         jQuery(output).prependTo("#content");
         jQuery("#content").listview('refresh');
 
         displayChange(status, role);
-    };
+    }
+
+    function pushPlayerStatus(user)
+    {
+        // 입력할 문자 메시지
+        var output = "";
+        // 유저의 id를 담는 변수
+        var select_id = ``;
+
+        var player = {
+            name : jQuery("#inputName").val()
+        };
+
+        for(var num in user) {
+            output = "";
+
+            output += `<li id="${user[num]['name']}" class="ui-block-c">`;
+            
+            output += "<h3>" + user[num]['name'] + "</h3>";
+
+            if(user[num].name == player.name) {
+                switch(user[num].role) {
+                    case "마피아": output += `<img src="/mafiaImg" width="100">`; break;
+
+                    case "시민": output += `<img src="/citizenImg" width="100">`; break;
+
+                    case "의사": output += `<img src="/doctorImg" width="100">`; break;
+
+                    case "경찰": output += `<img src="/policeImg" width="100">`; break;
+                }
+            }
+            else {
+                output += `<img src="/defaultImg" width="200">`;
+            }
+
+            output += "</li>";
+            
+            jQuery(output).prependTo("#player");
+            jQuery("#player").listview('refresh');
+        }
+    }
 
     function displayChange(status, role) {
 
@@ -334,6 +385,9 @@
         display: none;
         background-color: rgb(250, 205, 205);
     }
+    img {
+        width: 100;
+    }
 </style>
 </head>
 <body>
@@ -365,10 +419,14 @@
         <h1 id="date">준비중</h1>
     </div>
 
-    <!-- <img src="/defaultImg" width="200">
-    <img src="/mafiaImg" width="200"> -->
-
     <div data-role="content">
+        <div> 
+            <ul id="player" class="ui-grid-c" data-role="listview" data-inset="true">
+            </ul>
+        </div>
+    </div>
+
+   <div data-role="content">
         <input id="inputMessage" value=""/>
         <input type="button" id="submit" value="입력"/>
         <ul id="content" data-role="listview" data-inset="true"></ul>

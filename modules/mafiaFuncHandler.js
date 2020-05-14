@@ -377,10 +377,10 @@ module.exports.setTime = function setTime(day, survivor) {
     
     // 밤: 25초, 낮: 생존자 * 15초, 재판: 15초, 최후의 발언: 15초, 찬/반: 10초
     switch(day) {
-        case 1: return 5;//10;
-        case 2: return 5;//15;//survivor * 15;
-        case 3: return 5;//15;
-        case 4: return 5;//15;
-        case 5: return 5;//10;
+        case 1: return 10;
+        case 2: return 15;//survivor * 15;
+        case 3: return 15;
+        case 4: return 15;
+        case 5: return 10;
     }
 }
