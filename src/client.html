@@ -141,8 +141,6 @@
         // 찬성/반대
         socket.on("opposite", function(opposite, do_vote) {
 
-            console.log(do_vote);
-
             if(do_vote) {
                 alert(`이미 투표하셨습니다.`);
             }
@@ -216,8 +214,6 @@
 
     function pushMessage(pushName, pushMsg, pushDate, role, status, day) {
 
-        console.log(pushDate);
-
         // 입력할 문자 메시지
         var output = "";
 
@@ -248,8 +244,6 @@
         output += "<p>" + pushDate + "</p>";
         output += "</li>";
 
-        console.log(output);
-
         // 문서 객체를 추가합니다.
         jQuery(output).prependTo("#content");
         jQuery("#content").listview('refresh');
@@ -277,23 +271,49 @@
 
             if(user[num].name == player.name) {
                 switch(user[num].role) {
-                    case "마피아": output += `<img src="/mafiaImg" width="100">`; break;
+                    case "마피아": 
+                    output += `<img id=${user[num].name} `;
+                    output += `src="/mafiaImg" width="100">`;
+                    break;
 
-                    case "시민": output += `<img src="/citizenImg" width="100">`; break;
+                    case "시민": 
+                    output += `<img id=${user[num].name} `;
+                    output += `src="/citizenImg" width="100">`; 
+                    break;
 
-                    case "의사": output += `<img src="/doctorImg" width="100">`; break;
+                    case "의사": 
+                    output += `<img id=${user[num].name} `;
+                    output += `src="/doctorImg" width="100">`; 
+                    break;
 
-                    case "경찰": output += `<img src="/policeImg" width="100">`; break;
+                    case "경찰": 
+                    output += `<img id=${user[num].name} `;
+                    output += `src="/policeImg" width="100">`; 
+                    break;
                 }
             }
             else {
-                output += `<img src="/defaultImg" width="200">`;
+                console.log(user[num].name);
+                output += `<img id=${user[num].name} src="/defaultImg" width="200" onclick="changeImg(${user[num].name});">`;
             }
 
             output += "</li>";
             
             jQuery(output).prependTo("#player");
             jQuery("#player").listview('refresh');
+        }
+    }
+
+    function changeImg(userName) {
+        let role = prompt("추측할 직업을 적어주세요 (ex: 마피아)", "");
+        var name = userName.item(0).textContent;
+
+        switch(role) {
+            case "마피아": $(`#${name}`).attr("src", `/mafiaImg`); break;
+            case "시민": $(`#${name}`).attr("src", `/mafiaImg`); break;
+            case "의사": $(`#${name}`).attr("src", `/mafiaImg`); break;
+            case "경찰": $(`#${name}`).attr("src", `/mafiaImg`); break;
+            default: alert("잘못된 직업입니다");
         }
     }
 
