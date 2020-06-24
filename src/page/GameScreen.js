@@ -31,6 +31,10 @@ class GameScreen extends Component {
     this.setState({message: ''})
   }
 
+  startGame = (e) => {
+
+  }
+
   render() {
         
     return (
@@ -45,9 +49,8 @@ class GameScreen extends Component {
                   <span id="userCount">0</span>
                   &nbsp;명</p>
               </h1>
+              <button onClick={this.startGame}>시작</button>
               <Timer roomName={this.state.room} socket={socket}/>
-              {/* <h1 id="timer">00 : 00 : 00</h1> */}
-              <h1 id="date">준비중</h1>
           </div>
 
           <div data-role="content">

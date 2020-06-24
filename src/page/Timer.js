@@ -1,16 +1,18 @@
 import React, { Component } from 'react';
 
 var socket = null;
+var start = false;
 
 class Timer extends Component {
     state = {
         minutes: 0,
-        seconds: 3,
+        seconds: 0,
         room: this.props.roomName
     }
 
     timer = (e) => {
         clearInterval(this.myInterval);
+        start = true;
         this.myInterval = setInterval(() => {
             const { seconds, minutes } = this.state
 
@@ -37,7 +39,7 @@ class Timer extends Component {
         socket = this.props.socket;
 
         socket.on("timer", () => {
-            this.setState({minutes: 0, seconds: 4})
+            this.setState({minutes: 0, seconds: 5})
             
             this.timer();
         })
@@ -59,7 +61,7 @@ class Timer extends Component {
         return (
             <div>
                 { minutes === 0 && seconds === 0
-                    ? <h1>Busted!</h1>
+                    ? start === true ? <h1>{minutes}:{seconds < 10 ? `0${seconds}` : seconds}</h1> : <h1>준비중</h1>
                     : <h1>{minutes}:{seconds < 10 ? `0${seconds}` : seconds}</h1>
                 }
 
