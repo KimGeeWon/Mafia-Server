@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import io from 'socket.io-client';
 import Timer from './Timer';
+import ChatApp from './ChatApp'
 
 const socket = io('localhost:3002');
 
@@ -53,7 +54,7 @@ class GameScreen extends Component {
               <input value={this.state.message} id="message" onChange={this.handleChange}/>
               <input type="button" id="submit" value="입력" onClick={this.handleClick}/>
               <ul>
-                  <ChatApp/>
+                  <ChatApp socket={socket}/>
               </ul>
           </div>
       </div>
@@ -61,35 +62,35 @@ class GameScreen extends Component {
   }
 }
 
-class ChatApp extends React.Component {
-  constructor (props) {
-    super(props)
-    this.state = {
-      logs: []
-    }
-  }
-
-  componentDidMount () {
-    socket.on('message', (obj) => {
-      const logs2 = this.state.logs;
-      obj.key = 'key_' + (this.state.logs.length + 1);
-      console.log(obj);
-      logs2.unshift(obj);
-      this.setState({logs: logs2});
-    })
-  }
-  render () {
-    const messages = this.state.logs.map(e => (
-      <div key={e.key}>
-        <span>{e.user}</span>
-        <span>: {e.message}</span>
-        <p style={{clear: 'both'}} />
-      </div>
-    ))
-    return (
-      <div>{messages}</div>
-    )
-  }
-}
-
 export default GameScreen;
+
+// class ChatApp extends React.Component {
+//   constructor (props) {
+//     super(props)
+//     this.state = {
+//       logs: []
+//     }
+//   }
+
+//   componentDidMount () {
+//     socket.on('message', (obj) => {
+//       const logs2 = this.state.logs;
+//       obj.key = 'key_' + (this.state.logs.length + 1);
+//       console.log(obj);
+//       logs2.unshift(obj);
+//       this.setState({logs: logs2});
+//     })
+//   }
+//   render () {
+//     const messages = this.state.logs.map(e => (
+//       <div key={e.key}>
+//         <span>{e.user}</span>
+//         <span>: {e.message}</span>
+//         <p style={{clear: 'both'}} />
+//       </div>
+//     ))
+//     return (
+//       <div>{messages}</div>
+//     )
+//   }
+// }

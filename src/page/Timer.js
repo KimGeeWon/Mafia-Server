@@ -36,7 +36,6 @@ class Timer extends Component {
     componentDidMount() {
         socket = this.props.socket;
 
-        console.log(socket);
         socket.on("timer", () => {
             this.setState({minutes: 0, seconds: 4})
             
