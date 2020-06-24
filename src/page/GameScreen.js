@@ -32,7 +32,7 @@ class GameScreen extends Component {
   }
 
   startGame = (e) => {
-
+    socket.emit("start", this.state.room);
   }
 
   render() {

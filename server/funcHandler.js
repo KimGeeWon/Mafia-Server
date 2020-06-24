@@ -1,4 +1,4 @@
-module.exports.randomRole = function randomRole(data, count, loginId, roomId) {
+module.exports.randomRole = function randomRole(room, count, loginId, roomId) {
 
     const jobList = checkPerson(count);
     const randNum = new Array(count);
@@ -20,7 +20,7 @@ module.exports.randomRole = function randomRole(data, count, loginId, roomId) {
 
     // 난수 값에 따라 역할 부여
     for(var num in loginId) {
-        if(loginId[num]['room'] === data.room) {
+        if(loginId[num]['room'] === room) {
             loginId[num]['role'] = insertRole(jobList[randNum[num]]);
             if(loginId[num]['role'] === "마피아") {
                 _people[1]--;
@@ -29,9 +29,9 @@ module.exports.randomRole = function randomRole(data, count, loginId, roomId) {
         }
     }
 
-    roomId[checkRoomId(data.room, roomId)]['citizen'] = _people[1];
-    roomId[checkRoomId(data.room, roomId)]['mafia'] = _people[2];
-    roomId[checkRoomId(data.room, roomId)]['survivor'] = count;
+    roomId[checkRoomId(room, roomId)]['citizen'] = _people[1];
+    roomId[checkRoomId(room, roomId)]['mafia'] = _people[2];
+    roomId[checkRoomId(room, roomId)]['survivor'] = count;
 
     return { 
         loginId: loginId, 

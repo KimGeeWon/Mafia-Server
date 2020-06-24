@@ -78,6 +78,50 @@ module.exports = (io) => {
             });
         });
 
+        socket.on("start", (room) => {
+            console.log(room);
+
+            // 게임 시작시 능력 분배
+            ids = mafiaFunc.randomRole(room, io.sockets.adapter.rooms[room].length, loginIds, roomIds);
+
+            copyIds(ids);
+
+            // 날, 시간, 게임 시작 여부 변수
+            roomIds[checkRoomIds(room)]['day'] = 1;
+            roomIds[checkRoomIds(room)]['time'] = mafiaFunc.setTime(1, io.sockets.adapter.rooms[room].length);
+            roomIds[checkRoomIds(room)]['check_start'] = 1;
+
+            console.log(roomIds);
+            console.log(loginIds);
+
+            var user = new Array();
+
+            // // 전체 채팅 청소
+            // io.to(data.room).emit("clear");
+
+            // // 게임 시작 공지 팝업
+            // io.to(data.room).emit("start");
+
+            // // 사용자의 능력을 팝업
+            // for(var num in loginIds) {
+            //     if(loginIds[num]['room'] === data.room) {
+            //         io.to(loginIds[num]['socket']).emit("role", loginIds[num]['role']);
+
+            //         user.push({
+            //             name: loginIds[num]['user'],
+            //             role: loginIds[num]['role']
+            //         });
+            //     }
+            // }
+
+            // // 유저 리스트 팝업
+            // io.to(data.room).emit("listPop", user);
+
+            // // 게임 타이머 시작
+            // io.to(data.room).emit("timer", roomIds[checkRoomIds(data.room)]['time'], 
+            // roomIds[checkRoomIds(data.room)]['day']);
+        })
+
         socket.on("message", function(data) {
 
             if(data.message.startsWith('/')) {
