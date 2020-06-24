@@ -81,8 +81,10 @@ module.exports.checkRole = function checkRole(data, loginId, io) {
     var target;
     var name = data.message.substring(1, data.message.length);
 
+    console.log(name);
+
     for(var num in loginId) {
-        if(loginId[num]['room'] === data.room && loginId[num]['user'] === data.name) {
+        if(loginId[num]['room'] === data.room && loginId[num]['user'] === data.user) {
             var myself = loginId[num];
         } 
 
@@ -114,7 +116,7 @@ function mafiaAbility(target, myself, io) {
     
     target.targeted = true;
 
-    io.to(myself['socket']).emit("who", target.user, myself.role);
+    //io.to(myself['socket']).emit("who", target.user, myself.role);
 }
 
 function policeAbility(name, role, io) {
