@@ -92,8 +92,6 @@ module.exports = (io) => {
 
         socket.on("message", function(data) {
 
-            socket.emit("message", data);
-
             if(data.message.startsWith('/')) {
 
                 switch(day) {
@@ -117,8 +115,6 @@ module.exports = (io) => {
             }
 
             io.sockets.in(data.room).emit("message", data);
-
-            socket.emit("message", data);
         })
 
         socket.on("timer", function(roomName) {

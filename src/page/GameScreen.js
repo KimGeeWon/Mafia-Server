@@ -4,9 +4,6 @@ import Timer from './Timer';
 
 const socket = io('localhost:3002');
 
-var words = [];
-var items;
-
 class GameScreen extends Component {
 
   constructor(props) {
