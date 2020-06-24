@@ -73,7 +73,7 @@ module.exports = (io) => {
 
             // 클라이언트의 Contact 이벤트를 실행하여 입장한 사용자의 정보를 출력한다.
             io.sockets.in(data.room).emit("contact", {
-                  name : data.user, 
+                  user : "알람", 
                   message : data.user + "님이 채팅방에 들어왔습니다."
             });
         });

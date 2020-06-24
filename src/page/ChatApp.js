@@ -33,7 +33,7 @@ class ChatApp extends React.Component {
       const messages = this.state.logs.map(e => (
         <div key={e.key}>
             <span>{e.user}</span>
-            <span>{e.message}</span>
+            <span> - {e.message}</span>
             <p style={{clear: 'both'}} />
         </div>
       ))
