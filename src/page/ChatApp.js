@@ -16,7 +16,6 @@ class ChatApp extends React.Component {
         socket.on('message', (obj) => {
             const logs2 = this.state.logs;
             obj.key = 'key_' + (this.state.logs.length + 1);
-            console.log(obj);
             logs2.unshift(obj);
             this.setState({logs: logs2});
         })
@@ -24,10 +23,13 @@ class ChatApp extends React.Component {
         socket.on('contact', (obj) => {
             const logs2 = this.state.logs;
             obj.key = 'key_' + (this.state.logs.length + 1);
-            console.log(obj);
             logs2.unshift(obj);
             this.setState({logs: logs2});
         })
+
+        socket.on('clear-chat', (obj) => {
+          this.setState({logs: []});
+      })
     }
     render () {
       const messages = this.state.logs.map(e => (

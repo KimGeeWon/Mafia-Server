@@ -152,5 +152,9 @@ module.exports = (io) => {
         socket.on("timer", function(roomName) {
             io.sockets.in(roomName).emit("timer");
         });
+
+        socket.on("clear-chat", function(roomName) {
+            io.sockets.in(roomName).emit("clear-chat");
+        })
     });
 };

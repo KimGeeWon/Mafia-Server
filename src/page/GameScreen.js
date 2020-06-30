@@ -35,6 +35,10 @@ class GameScreen extends Component {
     socket.emit("start", this.state.room);
   }
 
+  clearChat = (e) => {
+    socket.emit("clear-chat", this.state.room);
+  }
+
   render() {
         
     return (
@@ -50,6 +54,7 @@ class GameScreen extends Component {
                   &nbsp;명</p>
               </h1>
               <button onClick={this.startGame}>시작</button>
+              <button onClick={this.clearChat}>채팅 청소</button>
               <Timer roomName={this.state.room} socket={socket}/>
           </div>
 
@@ -66,34 +71,3 @@ class GameScreen extends Component {
 }
 
 export default GameScreen;
-
-// class ChatApp extends React.Component {
-//   constructor (props) {
-//     super(props)
-//     this.state = {
-//       logs: []
-//     }
-//   }
-
-//   componentDidMount () {
-//     socket.on('message', (obj) => {
-//       const logs2 = this.state.logs;
-//       obj.key = 'key_' + (this.state.logs.length + 1);
-//       console.log(obj);
-//       logs2.unshift(obj);
-//       this.setState({logs: logs2});
-//     })
-//   }
-//   render () {
-//     const messages = this.state.logs.map(e => (
-//       <div key={e.key}>
-//         <span>{e.user}</span>
-//         <span>: {e.message}</span>
-//         <p style={{clear: 'both'}} />
-//       </div>
-//     ))
-//     return (
-//       <div>{messages}</div>
-//     )
-//   }
-// }
