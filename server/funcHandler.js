@@ -375,6 +375,10 @@ module.exports.oppositeCast = function oppositeCast(data, loginId, roomId, io) {
     }
 }
 
+module.exports.userRole = function userRole(room, name) {
+    
+}
+
 module.exports.setTime = function setTime(day, survivor) {
     
     // 밤: 25초, 낮: 생존자 * 15초, 재판: 15초, 최후의 발언: 15초, 찬/반: 10초

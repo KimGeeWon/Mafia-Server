@@ -95,8 +95,8 @@ module.exports = (io) => {
 
             var user = new Array();
 
-            // // 전체 채팅 청소
-            // io.to(data.room).emit("clear");
+            // 전체 채팅 청소
+            io.to(room).emit("clear-chat");
 
             // // 게임 시작 공지 팝업
             // io.to(data.room).emit("start");
@@ -154,7 +154,7 @@ module.exports = (io) => {
                 // console.log(loginIds);
             }
             else {
-                io.sockets.in(data.room).emit("message", data);
+                io.sockets.in(data.room).emit("message", data, role);
             }
         })
 

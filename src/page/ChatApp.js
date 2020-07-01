@@ -13,9 +13,15 @@ class ChatApp extends Component {
     componentDidMount () {
         socket = this.props.socket;
 
-        socket.on('message', (obj) => {
+        socket.on('message', (obj, role) => {
             const logs2 = this.state.logs;
             obj.key = 'key_' + (this.state.logs.length + 1);
+            if(role === "마피아") {
+              obj.class = 'mafia';
+            }
+            else {
+              obj.class = 'citizen';
+            }
             logs2.unshift(obj);
             this.setState({logs: logs2});
         })
@@ -33,7 +39,7 @@ class ChatApp extends Component {
     }
     render () {
       const messages = this.state.logs.map(e => (
-        <div key={e.key}>
+        <div key={e.key} className={e.class}>
             <span>{e.user}</span>
             <span> - {e.message}</span>
             <p style={{clear: 'both'}} />
