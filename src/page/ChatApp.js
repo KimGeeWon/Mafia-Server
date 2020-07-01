@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 
 var socket = null;
 
-class ChatApp extends React.Component {
+class ChatApp extends Component {
     constructor (props) {
       super(props)
       this.state = {

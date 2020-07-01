@@ -118,11 +118,15 @@ module.exports = (io) => {
             // io.to(data.room).emit("listPop", user);
 
             // // 게임 타이머 시작
-            // io.to(data.room).emit("timer", roomIds[checkRoomIds(data.room)]['time'], 
-            // roomIds[checkRoomIds(data.room)]['day']);
+            io.to(room).emit("timer", roomIds[checkRoomIds(room)]['time'], "밤");
         })
 
         socket.on("message", function(data) {
+
+            var role = loginIds[checkLoginIds(data.room, data.user)]['role'];
+            var status = loginIds[checkLoginIds(data.room, data.user)]['status'];
+            var day = roomIds[checkRoomIds(data.room)]['day'];
+            var elect = roomIds[checkRoomIds(data.room)]['elect'];
 
             if(data.message.startsWith('/')) {
 
@@ -145,16 +149,81 @@ module.exports = (io) => {
 
                 // console.log(loginIds);
             }
-
-            io.sockets.in(data.room).emit("message", data);
+            else {
+                io.sockets.in(data.room).emit("message", data);
+            }
         })
 
-        socket.on("timer", function(roomName) {
-            io.sockets.in(roomName).emit("timer");
+        socket.on("timer", function(room) {
+
+            var day = roomIds[checkRoomIds(room)]['day'];
+            var time = roomIds[checkRoomIds(room)]['time'];
+            var survivor = roomIds[checkRoomIds(room)]['survivor'];
+            var citizen = roomIds[checkRoomIds(room)]['citizen'];
+            var mafia = roomIds[checkRoomIds(room)]['mafia'];
+
+            var end = false;
+
+            switch(day) {
+                // 밤 -> 낮
+                case 1: 
+                    day = 2;
+                    
+                    time = mafiaFunc.setTime(day, survivor); 
+                    
+                    io.to(room).emit("timer", time, "낮"); 
+
+                    break;
+    
+                // 낮 -> 재판
+                case 2: 
+                    day = 3; 
+                    
+                    time = mafiaFunc.setTime(day, survivor); 
+
+                    io.to(room).emit("timer", time, "재판"); 
+                    
+                    break;
+    
+                // 재판 -> 최후의 발언
+                case 3: 
+                    day = 4;
+                
+                    time = mafiaFunc.setTime(day, survivor); 
+                
+                    io.to(room).emit("timer", time, "최후의 발언"); 
+                    
+                    break;
+    
+                // 최후의 발언 -> 찬/반
+                case 4: 
+                    day = 5; 
+
+                    time = mafiaFunc.setTime(day, survivor); 
+
+                    io.to(room).emit("timer", time, "찬성/반대"); 
+                    
+                    break;
+    
+                // 찬/반 -> 밤
+                case 5: 
+                    day = 1; 
+
+                    time = mafiaFunc.setTime(day, survivor); 
+
+                    io.sockets.in(room).emit("timer", time, "밤");
+            }
+
+            if(!end) {
+                roomIds[checkRoomIds(room)]['day'] = day;
+                roomIds[checkRoomIds(room)]['time'] = time;
+                roomIds[checkRoomIds(room)]['survivor'] = survivor;
+                roomIds[checkRoomIds(room)]['citizen'] = citizen;
+            }
         });
 
-        socket.on("clear-chat", function(roomName) {
-            io.sockets.in(roomName).emit("clear-chat");
+        socket.on("clear-chat", function(room) {
+            io.sockets.in(room).emit("clear-chat");
         })
     });
 };

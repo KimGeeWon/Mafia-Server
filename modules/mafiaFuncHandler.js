@@ -1,4 +1,4 @@
-module.exports.randomRole = function randomRole(room, count, loginId, roomId) {
+module.exports.randomRole = function randomRole(data, count, loginId, roomId) {
 
     const jobList = checkPerson(count);
     const randNum = new Array(count);
@@ -20,7 +20,7 @@ module.exports.randomRole = function randomRole(room, count, loginId, roomId) {
 
     // 난수 값에 따라 역할 부여
     for(var num in loginId) {
-        if(loginId[num]['room'] === room) {
+        if(loginId[num]['room'] === data.room) {
             loginId[num]['role'] = insertRole(jobList[randNum[num]]);
             if(loginId[num]['role'] === "마피아") {
                 _people[1]--;
@@ -29,9 +29,9 @@ module.exports.randomRole = function randomRole(room, count, loginId, roomId) {
         }
     }
 
-    roomId[checkRoomId(room, roomId)]['citizen'] = _people[1];
-    roomId[checkRoomId(room, roomId)]['mafia'] = _people[2];
-    roomId[checkRoomId(room, roomId)]['survivor'] = count;
+    roomId[checkRoomId(data.room, roomId)]['citizen'] = _people[1];
+    roomId[checkRoomId(data.room, roomId)]['mafia'] = _people[2];
+    roomId[checkRoomId(data.room, roomId)]['survivor'] = count;
 
     return { 
         loginId: loginId, 
@@ -82,7 +82,7 @@ module.exports.checkRole = function checkRole(data, loginId, io) {
     var name = data.message.substring(1, data.message.length);
 
     for(var num in loginId) {
-        if(loginId[num]['room'] === data.room && loginId[num]['user'] === data.user) {
+        if(loginId[num]['room'] === data.room && loginId[num]['user'] === data.name) {
             var myself = loginId[num];
         } 
 
@@ -105,8 +105,6 @@ module.exports.checkRole = function checkRole(data, loginId, io) {
         myself.do_role = true;
     }
 
-    console.log(loginId);
-
     return  {
         loginId: loginId
     };
@@ -116,7 +114,7 @@ function mafiaAbility(target, myself, io) {
     
     target.targeted = true;
 
-    //io.to(myself['socket']).emit("who", target.user, myself.role);
+    io.to(myself['socket']).emit("who", target.user, myself.role);
 }
 
 function policeAbility(name, role, io) {
@@ -379,10 +377,10 @@ module.exports.setTime = function setTime(day, survivor) {
     
     // 밤: 25초, 낮: 생존자 * 15초, 재판: 15초, 최후의 발언: 15초, 찬/반: 10초
     switch(day) {
-        case 1: return 5;
-        case 2: return 5;//survivor * 15;
-        case 3: return 5;
-        case 4: return 5;
-        case 5: return 5;
+        case 1: return 10;
+        case 2: return 15;//survivor * 15;
+        case 3: return 15;
+        case 4: return 15;
+        case 5: return 10;
     }
 }

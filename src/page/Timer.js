@@ -5,6 +5,7 @@ var start = false;
 
 class Timer extends Component {
     state = {
+        status: "",
         minutes: 0,
         seconds: 0,
         room: this.props.roomName
@@ -38,8 +39,22 @@ class Timer extends Component {
     componentDidMount() {
         socket = this.props.socket;
 
-        socket.on("timer", () => {
-            this.setState({minutes: 0, seconds: 5})
+        socket.on("timer", (time, stat) => {
+            var min = 0;
+            var sec = 0;
+
+            while(1) {
+                if(time >= 60) {
+                    min++;
+                    time -= 60;
+                }
+                else {
+                    sec = time;
+                    break;
+                }
+            }
+
+            this.setState({minutes: min, seconds: sec, status: stat});
             
             this.timer();
         })
@@ -60,8 +75,9 @@ class Timer extends Component {
         const { minutes, seconds } = this.state
         return (
             <div>
+                <h1>{this.state.status}</h1>
                 { minutes === 0 && seconds === 0
-                    ? start === true ? <h1>{minutes}:{seconds < 10 ? `0${seconds}` : seconds}</h1> : <h1>준비중</h1>
+                    ? start === true ? <h1>{minutes}:{seconds < 10 ? `0${seconds}` : seconds}</h1> : <h1></h1>
                     : <h1>{minutes}:{seconds < 10 ? `0${seconds}` : seconds}</h1>
                 }
 
