@@ -1,19 +1,19 @@
 import React, { Component } from 'react';
 
 var socket = null;
-var start = false;
 
 class Timer extends Component {
     state = {
         status: "",
         minutes: 0,
         seconds: 0,
-        room: this.props.roomName
+        room: this.props.roomName,
+        start: false
     }
 
     timer = (e) => {
         clearInterval(this.myInterval);
-        start = true;
+        this.setState({start: true});
         this.myInterval = setInterval(() => {
             const { seconds, minutes } = this.state
 
@@ -33,11 +33,13 @@ class Timer extends Component {
                     }))
                 }
             } 
-        }, 1000)
+        }, 1000);
     }
 
     componentDidMount() {
         socket = this.props.socket;
+
+        console.log(this.state);
 
         socket.on("timer", (time, stat) => {
             var min = 0;
@@ -59,6 +61,11 @@ class Timer extends Component {
             this.timer();
         })
 
+        socket.on("gameEnd", (win) => {
+            
+            this.setState({status: "", start: false});
+        });
+
         //this.timer();
     }
 
@@ -73,6 +80,7 @@ class Timer extends Component {
 
     render() {
         const { minutes, seconds } = this.state
+        var start = this.state.start;
         return (
             <div>
                 <h1>{this.state.status}</h1>

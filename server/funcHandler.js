@@ -206,11 +206,11 @@ module.exports.checkGameEnd = function checkGameEnd(room, loginId, roomId, io) {
 
     if(mafia >= citizen) {
         isEnd = true;
-        io.to(room).emit("initGame", "마피아");
+        io.to(room).emit("gameEnd", "마피아");
     }
     else if(mafia === 0) {
         isEnd = true;
-        io.to(room).emit("initGame", "시민");
+        io.to(room).emit("gameEnd", "시민");
     }
     else {
         return {
@@ -375,10 +375,6 @@ module.exports.oppositeCast = function oppositeCast(data, loginId, roomId, io) {
     }
 }
 
-module.exports.userRole = function userRole(room, name) {
-    
-}
-
 module.exports.setTime = function setTime(day, survivor) {
     
     // 밤: 25초, 낮: 생존자 * 15초, 재판: 15초, 최후의 발언: 15초, 찬/반: 10초
@@ -388,7 +384,7 @@ module.exports.setTime = function setTime(day, survivor) {
         // case 3: return 15;
         // case 4: return 15;
         // case 5: return 10;
-        case 1: return 30;
+        case 1: return 3;
         case 2: return 111115;//survivor * 15;
         case 3: return 5;
         case 4: return 5;

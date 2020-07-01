@@ -28,14 +28,30 @@ class ChatApp extends Component {
 
         socket.on('contact', (obj) => {
             const logs2 = this.state.logs;
+            console.log(logs2);
             obj.key = 'key_' + (this.state.logs.length + 1);
+            obj.class = 'broad';
             logs2.unshift(obj);
             this.setState({logs: logs2});
         })
 
-        socket.on('clear-chat', (obj) => {
+        socket.on('clear-chat', () => {
           this.setState({logs: []});
-      })
+        })
+
+        socket.on('gameEnd', (win) => {
+
+          const message = this.state.logs;
+
+          message.unshift ({
+            key: 'key_' + (this.state.logs.length + 1),
+            className: "broad",
+            user: "broad",
+            message: `게임이 ${win}의 승리로 종료되었습니다!`
+          })
+
+          this.setState({logs: message});
+        })
     }
     render () {
       const messages = this.state.logs.map(e => (
