@@ -13,6 +13,7 @@ class GameScreen extends Component {
         user: this.props.location.state.nickName,
         room: this.props.location.state.roomName,
         message: "",
+        userCount: 1
     }
   }
 
@@ -24,6 +25,9 @@ class GameScreen extends Component {
   
   componentDidMount = () =>  {
     socket.emit("access", this.state);
+    socket.on("access", (count) => {
+      this.setState({userCount: count});
+    });
   }
     
   handleClick = (e) =>  {
@@ -50,7 +54,7 @@ class GameScreen extends Component {
               </h1>
               <h1>
                   <p>현재 인원: &nbsp;
-                  <span id="userCount">0</span>
+                  <span id="userCount">{this.state.userCount}</span>
                   &nbsp;명</p>
               </h1>
               <button onClick={this.startGame}>시작</button>
