@@ -99,7 +99,7 @@ module.exports.checkRole = function checkRole(data, loginId, io) {
             case "마피아": mafiaAbility(target, myself, io); break;
             case "경찰": policeAbility(name, target.role, io); break;
             case "의사": doctorAbility(target, myself, io); break;
-            default: io.to(loginId[checkLoginId(data.room, data.name, loginId)]['socket']).emit("none", myself.user);
+            default: io.to(loginId[checkLoginId(data.room, data.user, loginId)]['socket']).emit("none", myself.user);
         }
     
         myself.do_role = true;
@@ -146,7 +146,7 @@ module.exports.votePerson = function votePerson(data, loginId, io) {
 
     const name = data.message.substring(1, data.message.length);
     const object = checkLoginId(data.room, name, loginId);
-    const me = checkLoginId(data.room, data.name, loginId);
+    const me = checkLoginId(data.room, data.user, loginId);
 
     if(object === false) {
         io.to(data.room).emit("none", name);
@@ -175,22 +175,22 @@ module.exports.oppositePerson = function oppositePerson(data, loginId, roomId, i
     const num = checkLoginId(data.room, 
         roomId[checkRoomId(data.room, roomId)]['elect'], loginId);
 
-    if(loginId[checkLoginId(data.room, data.name, loginId)]['do_vote']) {
+    if(loginId[checkLoginId(data.room, data.user, loginId)]['do_vote']) {
 
-        io.to(loginId[checkLoginId(data.room, data.name, loginId)]['socket']).emit("opposite", opposite, loginId[checkLoginId(data.room, data.name, loginId)]['do_vote']);
+        io.to(loginId[checkLoginId(data.room, data.user, loginId)]['socket']).emit("opposite", opposite, loginId[checkLoginId(data.room, data.user, loginId)]['do_vote']);
     }
     else if(opposite === "찬성") {
 
-        io.to(data.room).emit("opposite", opposite, loginId[checkLoginId(data.room, data.name, loginId)]['do_vote']);
+        io.to(data.room).emit("opposite", opposite, loginId[checkLoginId(data.room, data.user, loginId)]['do_vote']);
 
         loginId[num]['vote']++;
-        loginId[checkLoginId(data.room, data.name, loginId)]['do_vote'] = true;
+        loginId[checkLoginId(data.room, data.user, loginId)]['do_vote'] = true;
     }
     else if(opposite === "반대") {
-        io.to(data.room).emit("opposite", opposite, loginId[checkLoginId(data.room, data.name, loginId)]['do_vote']);
+        io.to(data.room).emit("opposite", opposite, loginId[checkLoginId(data.room, data.user, loginId)]['do_vote']);
 
         loginId[num]['vote']--;
-        loginId[checkLoginId(data.room, data.name, loginId)]['do_vote'] = true;
+        loginId[checkLoginId(data.room, data.user, loginId)]['do_vote'] = true;
     }
 
     return {
@@ -199,18 +199,18 @@ module.exports.oppositePerson = function oppositePerson(data, loginId, roomId, i
     }
 }
 
-module.exports.checkGameEnd = function checkGameEnd(data, loginId, roomId, io) {
+module.exports.checkGameEnd = function checkGameEnd(room, loginId, roomId, io) {
     var isEnd = false;
-    const mafia = roomId[checkRoomId(data.room, roomId)]['mafia'];
-    const citizen = roomId[checkRoomId(data.room, roomId)]['citizen'];
+    const mafia = roomId[checkRoomId(room, roomId)]['mafia'];
+    const citizen = roomId[checkRoomId(room, roomId)]['citizen'];
 
     if(mafia >= citizen) {
         isEnd = true;
-        io.to(data.room).emit("initGame", "마피아");
+        io.to(room).emit("initGame", "마피아");
     }
     else if(mafia === 0) {
         isEnd = true;
-        io.to(data.room).emit("initGame", "시민");
+        io.to(room).emit("initGame", "시민");
     }
     else {
         return {
@@ -218,7 +218,7 @@ module.exports.checkGameEnd = function checkGameEnd(data, loginId, roomId, io) {
         }
     }
 
-    var Id = initGame(data, loginId, roomId);
+    var Id = initGame(room, loginId, roomId);
 
     loginId = JSON.parse(JSON.stringify(Id.loginId));
     roomId = Id.roomId;
@@ -230,24 +230,24 @@ module.exports.checkGameEnd = function checkGameEnd(data, loginId, roomId, io) {
     }
 }
 
-function initGame(data, loginId, roomId) {
+function initGame(room, loginId, roomId) {
 
     console.log("게임 초기화");
 
-    roomId[checkRoomId(data.room, roomId)]['check_start'] = 0;
-    roomId[checkRoomId(data.room, roomId)]['day'] = 0;
-    roomId[checkRoomId(data.room, roomId)]['time'] = 0;
-    roomId[checkRoomId(data.room, roomId)]['survivor'] = 0;
-    roomId[checkRoomId(data.room, roomId)]['citizen'] = 0;
-    roomId[checkRoomId(data.room, roomId)]['mafia'] = 0;
-    roomId[checkRoomId(data.room, roomId)]['elect'] = "";
-    roomId[checkRoomId(data.room, roomId)]['tie_vote'] = false;
+    roomId[checkRoomId(room, roomId)]['check_start'] = 0;
+    roomId[checkRoomId(room, roomId)]['day'] = 0;
+    roomId[checkRoomId(room, roomId)]['time'] = 0;
+    roomId[checkRoomId(room, roomId)]['survivor'] = 0;
+    roomId[checkRoomId(room, roomId)]['citizen'] = 0;
+    roomId[checkRoomId(room, roomId)]['mafia'] = 0;
+    roomId[checkRoomId(room, roomId)]['elect'] = "";
+    roomId[checkRoomId(room, roomId)]['tie_vote'] = false;
 
     for(var num in loginId) {
-        if(loginId[num]['room'] === data.room) {
+        if(loginId[num]['room'] === room) {
             loginId[num]['role'] = null;
             loginId[num]['do_role'] = false;
-            loginId[num]['status'] = 0;
+            loginId[num]['alive'] = true;
             loginId[num]['healed'] = false;
             loginId[num]['targeted'] = false;
             loginId[num]['do_vote'] = false;
@@ -261,16 +261,16 @@ function initGame(data, loginId, roomId) {
     }
 }
 
-module.exports.abilityCast = function abilityCast(data, survivor, citizen, loginId, roomId, io) {
+module.exports.abilityCast = function abilityCast(room, survivor, citizen, loginId, roomId, io) {
 
     for(var num in loginId) {
-        if(loginId[num]['room'] === data.room && loginId[num]['targeted'] === true) {
+        if(loginId[num]['room'] === room && loginId[num]['targeted'] === true) {
             if(loginId[num]['healed'] === true) {
-                io.to(data.room).emit("mafia", loginId[num]['user'], true);
+                io.to(room).emit("mafia", loginId[num]['user'], true);
             }
             else {
-                io.to(data.room).emit("mafia", loginId[num]['user'], false);
-                loginId[num]['status'] = 1;
+                io.to(room).emit("mafia", loginId[num]['user'], false);
+                loginId[num]['alive'] = false;
                 survivor--;
                 citizen--;
             }
@@ -281,8 +281,8 @@ module.exports.abilityCast = function abilityCast(data, survivor, citizen, login
         loginId[num]['healed'] = false;
     }
 
-    roomId[checkRoomId(data.room, roomId)]['survivor'] = survivor;
-    roomId[checkRoomId(data.room, roomId)]['citizen'] = citizen;
+    roomId[checkRoomId(room, roomId)]['survivor'] = survivor;
+    roomId[checkRoomId(room, roomId)]['citizen'] = citizen;
 
     return {
         loginId: loginId,
@@ -352,7 +352,7 @@ module.exports.oppositeCast = function oppositeCast(data, loginId, roomId, io) {
     const vote = loginId[num]['vote'];
 
     if(vote > 0) {
-        loginId[num]['status'] = 1;
+        loginId[num]['alive'] = false;
         roomId[checkRoomId(data.room, roomId)]['survivor']--;
         if(role === "마피아") {
             roomId[checkRoomId(data.room, roomId)]['mafia']--;
@@ -379,8 +379,13 @@ module.exports.setTime = function setTime(day, survivor) {
     
     // 밤: 25초, 낮: 생존자 * 15초, 재판: 15초, 최후의 발언: 15초, 찬/반: 10초
     switch(day) {
-        case 1: return 5;
-        case 2: return 5;//survivor * 15;
+        // case 1: return 10;
+        // case 2: return survivor * 15;
+        // case 3: return 15;
+        // case 4: return 15;
+        // case 5: return 10;
+        case 1: return 30;
+        case 2: return 111115;//survivor * 15;
         case 3: return 5;
         case 4: return 5;
         case 5: return 5;

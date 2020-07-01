@@ -64,7 +64,7 @@ module.exports = (io) => {
                 user : data.user,   // 접속자의 유저의 이름
                 role : null,        // 접속자의 능력
                 do_role : false,    // 능력을 사용했는지 안 했는지 여부
-                status : 0,         // 0: 생존, 1: 사망
+                alive : true,         // true: 생존, false: 사망
                 healed : false,     // 의사에게 힐을 받았는지 여부
                 targeted : false,   // 마피아에게 타겟이 됐는지 여부
                 do_vote : false,    // 투표를 한 여부
@@ -90,9 +90,6 @@ module.exports = (io) => {
             roomIds[checkRoomIds(room)]['day'] = 1;
             roomIds[checkRoomIds(room)]['time'] = mafiaFunc.setTime(1, io.sockets.adapter.rooms[room].length);
             roomIds[checkRoomIds(room)]['check_start'] = 1;
-
-            console.log(roomIds);
-            console.log(loginIds);
 
             var user = new Array();
 
@@ -124,9 +121,14 @@ module.exports = (io) => {
         socket.on("message", function(data) {
 
             var role = loginIds[checkLoginIds(data.room, data.user)]['role'];
-            var status = loginIds[checkLoginIds(data.room, data.user)]['status'];
+            var alive = loginIds[checkLoginIds(data.room, data.user)]['alive'];
             var day = roomIds[checkRoomIds(data.room)]['day'];
             var elect = roomIds[checkRoomIds(data.room)]['elect'];
+
+            if(data.message == "ㅁㄴㅇㄹ") {
+                console.log(roomIds);
+                console.log(loginIds);
+            }
 
             if(data.message.startsWith('/')) {
 
@@ -168,12 +170,30 @@ module.exports = (io) => {
                 // 밤 -> 낮
                 case 1: 
                     day = 2;
-                    
+
+                    ids = mafiaFunc.abilityCast(room, survivor, citizen, loginIds, roomIds, io); 
+
+                    copyIds(ids);
+
+                    console.log(ids);
+
+                    var endData = mafiaFunc.checkGameEnd(room, loginIds, roomIds, io);
+
+                    console.log(endData);
+
+                    if(endData.isEnd) {  
+                        copyIds(endData);
+
+                        end = true;
+                        
+                        break; 
+                    };
+
                     time = mafiaFunc.setTime(day, survivor); 
                     
                     io.to(room).emit("timer", time, "낮"); 
-
-                    break;
+                    
+                    break; 
     
                 // 낮 -> 재판
                 case 2: 
