@@ -40,13 +40,12 @@ class ChatApp extends Component {
         })
 
         socket.on('gameEnd', (win) => {
-
           const message = this.state.logs;
 
           message.unshift ({
             key: 'key_' + (this.state.logs.length + 1),
             className: "broad",
-            user: "broad",
+            user: "공지",
             message: `게임이 ${win}의 승리로 종료되었습니다!`
           })
 

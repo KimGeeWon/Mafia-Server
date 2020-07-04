@@ -1,0 +1,50 @@
+.box {
+    width: 100%;
+    height: 100vh;
+    background-color: linear-gradient(45deg, blueviolet, aquamarine);
+    color: white;
+    font-family: Arial;
+}
+
+.container { 
+    position: absolute; 
+    color:white;
+    top: 50%;
+    left: 50%;
+    width: 800px; 
+    height: 300px;
+    margin-left: -400px;
+    margin-top: -150px;
+    text-align: center;
+ }
+
+ .container h1 {
+     font-size: 80px;
+     color: whitesmoke;
+ }
+
+ .container .content {
+    position: relative;
+ }
+
+ input[type="text"] {
+    font-family: Arial, Sans-Serif;
+    width: 90%;
+    font-size: 30px;
+    padding: 6px;
+    margin-top: 10px;
+    color: #adadad;
+    outline: none; 
+    border: solid 1px #adadad;
+    -moz-border-radius: 8px;
+    -webkit-border-radius: 8px;
+    border-radius: 8px;
+    -moz-box-shadow:inset 0 0 5px 5px #E6E6E6;
+    -webkit-box-shadow:inset 0 0 5px 5px #E6E6E6;
+    box-shadow:inset 0 0 5px 5px #E6E6E6;
+    clear: right;
+ }
+
+ input #startChatting {
+     color: black;
+ }
