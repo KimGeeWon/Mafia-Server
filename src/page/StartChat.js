@@ -20,12 +20,11 @@ class startChat extends Component {
             <div className="box">
                 <div className="container">
                     <h1>Ｍａｆｉａ Ｇａｍｅ</h1>
-                    <div className="content">
                         <div>
-                            <input type="text" value={this.state.roomName} onChange={this.handleChange} id="roomName" />
+                            <input type="text" value={this.state.roomName} onChange={this.handleChange} id="roomName" placeholder="Room Name" autocomplete="off"/>
                         </div>
                         <div>
-                            <input type="text" value={this.state.nickName} onChange={this.handleChange} id="nickName" />
+                            <input type="text" value={this.state.nickName} onChange={this.handleChange} id="nickName" placeholder="Nick Name" autocomplete="off"/>
                         </div>
                         <Link to={{
                             pathname: `/GameScreen`,
@@ -35,7 +34,6 @@ class startChat extends Component {
                             }}}>
                             <input type="button" id="startChatting" value="채팅 시작"/>
                         </Link>
-                    </div>
                 </div>
             </div>
         );
