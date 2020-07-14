@@ -20,9 +20,14 @@ class GameScreen extends Component {
   
   componentDidMount = () =>  {
     socket.emit("access", this.state);
+
     socket.on("access", (count) => {
       this.setState({userCount: count});
     });
+
+    socket.on("none", (name) => {
+      alert(`${name} 님은 없는 유저입니다.`);
+    })
   }
 
   inputChange = (e) => {
@@ -76,7 +81,7 @@ class GameScreen extends Component {
           <div className={style.slice}></div>
 
           <div className={style.chat}>
-                  <ChatApp socket={socket}/>
+              <ChatApp socket={socket}/>
           </div>
 
           <div className={style.chat_wrapper}>

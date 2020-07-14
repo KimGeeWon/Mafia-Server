@@ -181,13 +181,19 @@ module.exports.oppositePerson = function oppositePerson(data, loginId, roomId, i
     }
     else if(opposite === "찬성") {
 
-        io.to(data.room).emit("opposite", opposite, loginId[checkLoginId(data.room, data.user, loginId)]['do_vote']);
+        io.to(data.room).emit("broad", {
+            class : "contact", 
+            message : `누군가 찬성했습니다.`
+        });
 
         loginId[num]['vote']++;
         loginId[checkLoginId(data.room, data.user, loginId)]['do_vote'] = true;
     }
     else if(opposite === "반대") {
-        io.to(data.room).emit("opposite", opposite, loginId[checkLoginId(data.room, data.user, loginId)]['do_vote']);
+        io.to(data.room).emit("broad", {
+            class : "contact", 
+            message : `누군가 반대했습니다.`
+        });
 
         loginId[num]['vote']--;
         loginId[checkLoginId(data.room, data.user, loginId)]['do_vote'] = true;
@@ -290,14 +296,14 @@ module.exports.abilityCast = function abilityCast(room, survivor, citizen, login
     }
 }
 
-module.exports.voteCast = function voteCast(data, loginId, roomId, io) {
+module.exports.voteCast = function voteCast(room, loginId, roomId, io) {
 
     var elect = "";
     var tie_vote;
     var compare = 0;
 
     for(var num in loginId) {
-        if(loginId[num]['room'] === data.room) {
+        if(loginId[num]['room'] === room) {
             if(loginId[num]['vote'] > compare) {
                 elect = loginId[num]['user'];
                 compare = loginId[num]['vote'];
@@ -315,11 +321,14 @@ module.exports.voteCast = function voteCast(data, loginId, roomId, io) {
     if(tie_vote) {
         elect = "";
 
-        io.to(data.room).emit("voteCast", elect, tie_vote);
+        io.to(room).emit("broad", {
+            class : "vote", 
+            message : "동률표가 일어나 밤이 됐습니다."
+        });
 
-        roomId[checkRoomId(data.room, roomId)]['elect'] = elect;
+        roomId[checkRoomId(room, roomId)]['elect'] = elect;
 
-        roomId[checkRoomId(data.room, roomId)]['tie_vote'] = tie_vote;
+        roomId[checkRoomId(room, roomId)]['tie_vote'] = tie_vote;
 
         return {
             day: 1,
@@ -328,11 +337,11 @@ module.exports.voteCast = function voteCast(data, loginId, roomId, io) {
         }
     }
 
-    roomId[checkRoomId(data.room, roomId)]['elect'] = elect;
+    roomId[checkRoomId(room, roomId)]['elect'] = elect;
 
-    roomId[checkRoomId(data.room, roomId)]['tie_vote'] = tie_vote;
+    roomId[checkRoomId(room, roomId)]['tie_vote'] = tie_vote;
 
-    io.to(data.room).emit("voteCast", elect, tie_vote);
+    io.to(room).emit("voteCast", elect, tie_vote);
 
     return {
         day: 4,
@@ -341,11 +350,11 @@ module.exports.voteCast = function voteCast(data, loginId, roomId, io) {
     }
 }
 
-module.exports.oppositeCast = function oppositeCast(data, loginId, roomId, io) {
+module.exports.oppositeCast = function oppositeCast(room, loginId, roomId, io) {
 
-    const name = roomId[checkRoomId(data.room, roomId)]['elect'];
+    const name = roomId[checkRoomId(room, roomId)]['elect'];
 
-    const num = checkLoginId(data.room, name, loginId);
+    const num = checkLoginId(room, name, loginId);
 
     const role = loginId[num]['role'];
 
@@ -353,20 +362,30 @@ module.exports.oppositeCast = function oppositeCast(data, loginId, roomId, io) {
 
     if(vote > 0) {
         loginId[num]['alive'] = false;
-        roomId[checkRoomId(data.room, roomId)]['survivor']--;
+        roomId[checkRoomId(room, roomId)]['survivor']--;
         if(role === "마피아") {
-            roomId[checkRoomId(data.room, roomId)]['mafia']--;
+            roomId[checkRoomId(room, roomId)]['mafia']--;
         }
         else {
-            roomId[checkRoomId(data.room, roomId)]['citizen']--;
+            roomId[checkRoomId(room, roomId)]['citizen']--;
         }
-        io.to(data.room).emit("oppositeCast", 1, name);
+        
+        io.to(room).emit("broad", {
+            class : "contact", 
+            message : `투표가 찬성으로 마무리되어 ${name}님이 처형되었습니다`
+        });
     }
     else if(vote === 0) {
-        io.to(data.room).emit("oppositeCast", 0, name);
+        io.to(room).emit("broad", {
+            class : "contact", 
+            message : `동률표가 일어나 투표가 마무리되었습니다.`
+        });
     }
-    else if(vote === 0) {
-        io.to(data.room).emit("oppositeCast", -1, name);
+    else if(vote <= 0) {
+        io.to(room).emit("broad", {
+            class : "contact", 
+            message : `투표가 반대로 마무리되었습니다.`
+        });
     }
 
     return {
@@ -384,10 +403,10 @@ module.exports.setTime = function setTime(day, survivor) {
         // case 3: return 15;
         // case 4: return 15;
         // case 5: return 10;
-        case 1: return 3;
-        case 2: return 3;//survivor * 15;
-        case 3: return 51111111;
-        case 4: return 3;
+        case 1: return 1;
+        case 2: return 1;//survivor * 15;
+        case 3: return 5;
+        case 4: return 1;
         case 5: return 3;
     }
 }

@@ -13,6 +13,7 @@
     float: left;
     padding: 10px; 
     overflow: scroll;
+    overflow-x: hidden;
 }
 
 .chat_wrapper {

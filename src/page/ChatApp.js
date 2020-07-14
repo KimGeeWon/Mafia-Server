@@ -11,6 +11,13 @@ class ChatApp extends Component {
         logs: []
       }
     }
+
+    broadCast = (obj) => {
+      const logs2 = this.state.logs;
+      obj.key = 'key_' + (this.state.logs.length + 1);
+      logs2.push(obj);
+      this.setState({logs: logs2});
+    }
   
     componentDidMount () {
         socket = this.props.socket;
@@ -28,10 +35,7 @@ class ChatApp extends Component {
         })
 
         socket.on('broad', (obj) => {
-            const logs2 = this.state.logs;
-            obj.key = 'key_' + (this.state.logs.length + 1);
-            logs2.push(obj);
-            this.setState({logs: logs2});
+            this.broadCast(obj);
         })
 
         socket.on('clear-chat', () => {
@@ -51,8 +55,16 @@ class ChatApp extends Component {
           this.setState({logs: message});
         })
 
-        socket.on('start', () => {
-
+        socket.on('vote', (name, do_vote) => {
+          if(do_vote) {
+            alert("이미 투표를 하셨습니다.");
+          }
+          else {
+            this.broadCast({
+              class : "vote", 
+              message : `${name}님 한 표!`
+            });
+          }
         })
     }
     render () {

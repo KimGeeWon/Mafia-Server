@@ -40,8 +40,6 @@ module.exports = (io) => {
         // 채팅방 입시 실행
         socket.on("access", function(data) {
 
-            console.log(data);
-
             if(!checkRoomIds(data.room)) {
                 roomIds.push({
                     room : data.room, // 방 이름
@@ -72,16 +70,15 @@ module.exports = (io) => {
             });
 
             // 클라이언트의 Contact 이벤트를 실행하여 입장한 사용자의 정보를 출력한다.
-            io.sockets.in(data.room).emit("broad", {
+            io.to(data.room).emit("broad", {
                 class : "contact", 
                 message : data.user + " 님이 채팅방에 들어왔습니다."
             });
 
-            io.sockets.in(data.room).emit("access", io.sockets.adapter.rooms[data.room].length);
+            io.to(data.room).emit("access", io.sockets.adapter.rooms[data.room].length);
         });
 
         socket.on("start", (room) => {
-            console.log(room);
 
             // 게임 시작시 능력 분배
             ids = mafiaFunc.randomRole(room, io.sockets.adapter.rooms[room].length, loginIds, roomIds);
@@ -167,30 +164,35 @@ module.exports = (io) => {
                     // console.log(loginIds);
                 }
                 else {
+                    // 죽은 사람이 채팅을 치는 경우
                     if(alive == false) {
-                        console.log(1);
                         for(var num in loginIds) {
                             if(loginIds[num]['room'] === data.room && loginIds[num]['alive'] === false) {
                                 io.to(loginIds[num]['socket']).emit("message", data, "dead");
                             }
                         }
                     }
+                    // 밤인 경우
                     else if(day == 1) {
+                        // 마피아가 채팅을 치는 경우
                         if(role == "마피아") {
-                            console.log("마피아");
                             for(var num in loginIds) {
                                 if(loginIds[num]['room'] === data.room && loginIds[num]['role'] === "마피아") {
                                     io.to(loginIds[num]['socket']).emit("message", data, role);
                                 }
                             }
                         }
-                        else {
-                            console.log(2);
-                            io.sockets.in(data.room).emit("message", data, role);
+                    }
+                    // 최후의 반론일 경우
+                    else if(day == 4) {
+                        for(var num in loginIds) {
+                            if(loginIds[num]['room'] === data.room && elect === data.user) {
+                                io.to(loginIds[num]['socket']).emit("message", data, "citizen");
+                            } 
                         }
                     }
+                    // 그 이외 나머지
                     else {
-                        console.log(3);
                         io.sockets.in(data.room).emit("message", data, "citizen");
                     }
                 }
@@ -203,10 +205,6 @@ module.exports = (io) => {
         socket.on("timer", function(room) {
 
             try {
-                console.log(room);
-                console.log(room);
-                console.log(roomIds);
-    
                 var day = roomIds[checkRoomIds(room)]['day'];
                 var time = roomIds[checkRoomIds(room)]['time'];
                 var survivor = roomIds[checkRoomIds(room)]['survivor'];
@@ -240,43 +238,90 @@ module.exports = (io) => {
                         
                         break; 
         
-                    // 낮 -> 재판
+                    // 낮 -> 투표
                     case 2: 
                         day = 3; 
                         
                         time = mafiaFunc.setTime(day, survivor); 
     
-                        io.to(room).emit("timer", time, "재판"); 
+                        io.to(room).emit("timer", time, "투표"); 
+
+                        io.to(room).emit("broad", {
+                            class : "contact", 
+                            message : "투표 시간이 되었습니다."
+                        });
                         
                         break;
         
-                    // 재판 -> 최후의 발언
+                    // 투표 -> 최후의 반론
                     case 3: 
-                        day = 4;
+                        ids = mafiaFunc.voteCast(room, loginIds, roomIds, io);
+
+                        console.log(ids);
+
+                        day = ids.day;
+
+                        copyIds(ids);
                     
                         time = mafiaFunc.setTime(day, survivor); 
                     
-                        io.to(room).emit("timer", time, "최후의 발언"); 
+                        if(day === 1) {
+                            io.to(room).emit("timer", time, "밤");
+                        }
+                        else {
+                            var elect = roomIds[checkRoomIds(room)]['elect'];
+
+                            io.to(room).emit("timer", time, "최후의 반론");
+
+                            io.to(room).emit("broad", {
+                                class : "contact", 
+                                message : `${elect}님의 최후의 반론`
+                            });
+                        }
                         
                         break;
         
-                    // 최후의 발언 -> 찬/반
+                    // 최후의 반론 -> 찬/반
                     case 4: 
                         day = 5; 
     
                         time = mafiaFunc.setTime(day, survivor); 
     
                         io.to(room).emit("timer", time, "찬성/반대"); 
+
+                        io.to(room).emit("broad", {
+                            class : "contact", 
+                            message : `찬반 투표 시간입니다.`
+                        });
                         
                         break;
         
                     // 찬/반 -> 밤
                     case 5: 
                         day = 1; 
+
+                        ids = mafiaFunc.oppositeCast(room, loginIds, roomIds, io);
+
+                        copyIds(ids); 
+                        
+                        var endData = mafiaFunc.checkGameEnd(room, loginIds, roomIds, io);
+
+                        if(endData.isEnd) {  
+                            copyIds(endData);
+
+                            end = true;
+                            
+                            break; 
+                        };
     
                         time = mafiaFunc.setTime(day, survivor); 
     
                         io.sockets.in(room).emit("timer", time, "밤");
+
+                        io.to(room).emit("broad", {
+                            class : "contact", 
+                            message : `밤이 되었습니다.`
+                        });
                 }
     
                 if(!end) {
