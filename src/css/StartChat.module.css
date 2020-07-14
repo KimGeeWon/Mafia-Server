@@ -48,7 +48,7 @@
      color: whitesmoke;
  }
 
- input[type="text"] {
+.room, .name {
     font-family: Arial, Sans-Serif;
     text-align: center;
     width: 90%;
@@ -67,7 +67,7 @@
     clear: right;
  }
 
-#startChatting {
+.start {
     font-family: Arial, Sans-Serif;
     text-align: center;
     width: 90%;
@@ -84,6 +84,7 @@
     -webkit-box-shadow:inset 0 0 5px 5px #E6E6E6;
     box-shadow:inset 0 0 5px 5px #E6E6E6;
     clear: right;
+    cursor: pointer;
 
     position: absolute;
     bottom: 0;

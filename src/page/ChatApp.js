@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import style from "../css/ChatApp.module.css"
+import "../css/chat.css"
 
 var socket = null;
 
@@ -16,22 +18,20 @@ class ChatApp extends Component {
         socket.on('message', (obj, role) => {
             const logs2 = this.state.logs;
             obj.key = 'key_' + (this.state.logs.length + 1);
+            obj.class = role;
             if(role === "마피아") {
               obj.class = 'mafia';
             }
-            else {
-              obj.class = 'citizen';
-            }
-            logs2.unshift(obj);
+            logs2.push(obj);
             this.setState({logs: logs2});
+            console.log(logs2);
         })
 
         socket.on('contact', (obj) => {
             const logs2 = this.state.logs;
-            console.log(logs2);
             obj.key = 'key_' + (this.state.logs.length + 1);
             obj.class = 'broad';
-            logs2.unshift(obj);
+            logs2.push(obj);
             this.setState({logs: logs2});
         })
 
@@ -42,10 +42,10 @@ class ChatApp extends Component {
         socket.on('gameEnd', (win) => {
           const message = this.state.logs;
 
-          message.unshift ({
+          message.push ({
             key: 'key_' + (this.state.logs.length + 1),
             className: "broad",
-            user: "공지",
+            user: "",
             message: `게임이 ${win}의 승리로 종료되었습니다!`
           })
 
@@ -54,10 +54,9 @@ class ChatApp extends Component {
     }
     render () {
       const messages = this.state.logs.map(e => (
-        <div key={e.key} className={e.class}>
-            <span>{e.user}</span>
-            <span> - {e.message}</span>
-            <p style={{clear: 'both'}} />
+        <div key={e.key} className={e.class} id={style.chat}>
+          <span>{e.user}</span>
+          <span> {e.message}</span>
         </div>
       ))
       return (

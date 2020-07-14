@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import io from 'socket.io-client';
 import Timer from './Timer';
 import ChatApp from './ChatApp'
+import style from "../css/GameScreen.module.css"
 
 const socket = io('localhost:3002');
 
@@ -16,12 +17,6 @@ class GameScreen extends Component {
         userCount: 1
     }
   }
-
-  handleChange = (e) => {
-    this.setState({
-        [e.target.id]: e.target.value
-    })
-  }
   
   componentDidMount = () =>  {
     socket.emit("access", this.state);
@@ -29,10 +24,23 @@ class GameScreen extends Component {
       this.setState({userCount: count});
     });
   }
+
+  inputChange = (e) => {
+    this.setState({
+        [e.target.id]: e.target.value
+    })
+  }
     
-  handleClick = (e) =>  {
+  inputClick = (e) =>  {
     socket.emit("message", this.state);
     this.setState({message: ''})
+  }
+
+  inputPress = (e) =>  {
+    if (e.key === 'Enter') {
+      socket.emit("message", this.state);
+      this.setState({message: ''})
+    }
   }
 
   startGame = (e) => {
@@ -45,29 +53,35 @@ class GameScreen extends Component {
 
   render() {
         
+    const { inputChange, inputClick, startGame, inputPress} = this;
     return (
-      <div data-role="page" id="chatpage">
-          <div data-role="header">
-              <h1><p>방 이름: &nbsp;
-                  <span id="roomName">{this.props.location.state.roomName}</span>
-                  </p>
+      <div id="chatpage" className={style.wrapper}>
+          <div className={style.sidebar}>
+              <h1>
+                  <p>방 이름</p>
+                  <p id="roomName">{this.props.location.state.roomName}</p>
+                  <hr></hr>
               </h1>
               <h1>
-                  <p>현재 인원: &nbsp;
-                  <span id="userCount">{this.state.userCount}</span>
-                  &nbsp;명</p>
+                  <p>현재 인원</p>
+                  <p id="userCount">{this.state.userCount}</p>
+                  <hr></hr>
               </h1>
-              <button onClick={this.startGame}>시작</button>
-              <button onClick={this.clearChat}>채팅 청소</button>
+              <input type="button" onClick={startGame} className={style.startGame} value="게임 시작"/>
+              {/* <button onClick={this.clearChat}>채팅 청소</button> */}
+              <hr></hr>
               <Timer roomName={this.state.room} socket={socket}/>
           </div>
 
-          <div data-role="content">
-              <input value={this.state.message} id="message" onChange={this.handleChange}/>
-              <input type="button" id="submit" value="입력" onClick={this.handleClick}/>
-              <ul>
+          <div className={style.slice}></div>
+
+          <div className={style.chat}>
                   <ChatApp socket={socket}/>
-              </ul>
+          </div>
+
+          <div className={style.chat_wrapper}>
+              <input value={this.state.message} id="message" onChange={inputChange} onKeyPress={inputPress} className={style.input}/>
+              <input type="button" id="submit" value="입력" onClick={inputClick} className={style.apply}/>
           </div>
       </div>
     );

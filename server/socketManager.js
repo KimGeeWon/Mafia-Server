@@ -73,8 +73,8 @@ module.exports = (io) => {
 
             // 클라이언트의 Contact 이벤트를 실행하여 입장한 사용자의 정보를 출력한다.
             io.sockets.in(data.room).emit("contact", {
-                user : "알람", 
-                message : data.user + "님이 채팅방에 들어왔습니다."
+                user : "", 
+                message : data.user + " 님이 채팅방에 들어왔습니다."
             });
 
             io.sockets.in(data.room).emit("access", io.sockets.adapter.rooms[data.room].length);
@@ -122,125 +122,165 @@ module.exports = (io) => {
 
         socket.on("message", function(data) {
 
-            var role = loginIds[checkLoginIds(data.room, data.user)]['role'];
-            var alive = loginIds[checkLoginIds(data.room, data.user)]['alive'];
-            var day = roomIds[checkRoomIds(data.room)]['day'];
-            var elect = roomIds[checkRoomIds(data.room)]['elect'];
-
-            if(data.message == "ㅁㄴㅇㄹ") {
-                console.log(roomIds);
-                console.log(loginIds);
-            }
-
-            if(data.message.startsWith('/')) {
-
-                switch(day) {
-                    case 1: ids = mafiaFunc.checkRole(data, loginIds, io); break;
-                    case 3: ids = mafiaFunc.votePerson(data, loginIds, io); break;
-                    case 5: ids = mafiaFunc.oppositePerson(data, loginIds, roomIds, io); break;
-                    default: break;
+            try {
+                var role = loginIds[checkLoginIds(data.room, data.user)]['role'];
+                var alive = loginIds[checkLoginIds(data.room, data.user)]['alive'];
+                var day = roomIds[checkRoomIds(data.room)]['day'];
+                var elect = roomIds[checkRoomIds(data.room)]['elect'];
+    
+                if(data.message == "ㅁㄴㅇㄹ") {
+                    console.log(roomIds);
+                    console.log(loginIds);
                 }
 
-                copyIds(ids);
-
-                // loginIds[checkLoginIds(data.room, data.user)]['role'] = "마피아";
-
-                // var ids;
-
-                // ids = mafiaFunc.checkRole(data, loginIds, io);
-
-                // copyIds(ids);
-
-                // console.log(loginIds);
+                if(data.message == "ㅂㅈㄷㄱ") {
+                    loginIds[checkLoginIds(data.room, data.user)]['alive'] = false;
+                    console.log(loginIds[checkLoginIds(data.room, data.user)]['alive']);
+                }
+    
+                if(data.message.startsWith('/')) {
+    
+                    switch(day) {
+                        case 1: ids = mafiaFunc.checkRole(data, loginIds, io); break;
+                        case 3: ids = mafiaFunc.votePerson(data, loginIds, io); break;
+                        case 5: ids = mafiaFunc.oppositePerson(data, loginIds, roomIds, io); break;
+                        default: break;
+                    }
+    
+                    copyIds(ids);
+    
+                    // loginIds[checkLoginIds(data.room, data.user)]['role'] = "마피아";
+    
+                    // var ids;
+    
+                    // ids = mafiaFunc.checkRole(data, loginIds, io);
+    
+                    // copyIds(ids);
+    
+                    // console.log(loginIds);
+                }
+                else {
+                    if(alive == false) {
+                        console.log(1);
+                        for(var num in loginIds) {
+                            if(loginIds[num]['room'] === data.room && loginIds[num]['alive'] === false) {
+                                io.to(loginIds[num]['socket']).emit("message", data, "dead");
+                            }
+                        }
+                    }
+                    else if(day == 1) {
+                        if(role == "마피아") {
+                            console.log("마피아");
+                            for(var num in loginIds) {
+                                if(loginIds[num]['room'] === data.room && loginIds[num]['role'] === "마피아") {
+                                    io.to(loginIds[num]['socket']).emit("message", data, role);
+                                }
+                            }
+                        }
+                        else {
+                            console.log(2);
+                            io.sockets.in(data.room).emit("message", data, role);
+                        }
+                    }
+                    else {
+                        console.log(3);
+                        io.sockets.in(data.room).emit("message", data, "citizen");
+                    }
+                }
             }
-            else {
-                io.sockets.in(data.room).emit("message", data, role);
+            catch(e) {
+                console.log(e);
             }
         })
 
         socket.on("timer", function(room) {
 
-            var day = roomIds[checkRoomIds(room)]['day'];
-            var time = roomIds[checkRoomIds(room)]['time'];
-            var survivor = roomIds[checkRoomIds(room)]['survivor'];
-            var citizen = roomIds[checkRoomIds(room)]['citizen'];
-            var mafia = roomIds[checkRoomIds(room)]['mafia'];
-
-            var end = false;
-
-            switch(day) {
-                // 밤 -> 낮
-                case 1: 
-                    day = 2;
-
-                    ids = mafiaFunc.abilityCast(room, survivor, citizen, loginIds, roomIds, io); 
-
-                    copyIds(ids);
-
-                    console.log(ids);
-
-                    var endData = mafiaFunc.checkGameEnd(room, loginIds, roomIds, io);
-
-                    console.log(endData);
-
-                    if(endData.isEnd) {  
-                        copyIds(endData);
-
-                        end = true;
+            try {
+                console.log(room);
+                console.log(room);
+                console.log(roomIds);
+    
+                var day = roomIds[checkRoomIds(room)]['day'];
+                var time = roomIds[checkRoomIds(room)]['time'];
+                var survivor = roomIds[checkRoomIds(room)]['survivor'];
+                var citizen = roomIds[checkRoomIds(room)]['citizen'];
+                var mafia = roomIds[checkRoomIds(room)]['mafia'];
+    
+                var end = false;
+    
+                switch(day) {
+                    // 밤 -> 낮
+                    case 1: 
+                        day = 2;
+    
+                        ids = mafiaFunc.abilityCast(room, survivor, citizen, loginIds, roomIds, io); 
+    
+                        copyIds(ids);
+    
+                        var endData = mafiaFunc.checkGameEnd(room, loginIds, roomIds, io);
+    
+                        if(endData.isEnd) {  
+                            copyIds(endData);
+    
+                            end = true;
+                            
+                            break; 
+                        };
+    
+                        time = mafiaFunc.setTime(day, survivor); 
+                        
+                        io.to(room).emit("timer", time, "낮"); 
                         
                         break; 
-                    };
-
-                    time = mafiaFunc.setTime(day, survivor); 
-                    
-                    io.to(room).emit("timer", time, "낮"); 
-                    
-                    break; 
+        
+                    // 낮 -> 재판
+                    case 2: 
+                        day = 3; 
+                        
+                        time = mafiaFunc.setTime(day, survivor); 
     
-                // 낮 -> 재판
-                case 2: 
-                    day = 3; 
+                        io.to(room).emit("timer", time, "재판"); 
+                        
+                        break;
+        
+                    // 재판 -> 최후의 발언
+                    case 3: 
+                        day = 4;
                     
-                    time = mafiaFunc.setTime(day, survivor); 
-
-                    io.to(room).emit("timer", time, "재판"); 
+                        time = mafiaFunc.setTime(day, survivor); 
                     
-                    break;
+                        io.to(room).emit("timer", time, "최후의 발언"); 
+                        
+                        break;
+        
+                    // 최후의 발언 -> 찬/반
+                    case 4: 
+                        day = 5; 
     
-                // 재판 -> 최후의 발언
-                case 3: 
-                    day = 4;
-                
-                    time = mafiaFunc.setTime(day, survivor); 
-                
-                    io.to(room).emit("timer", time, "최후의 발언"); 
-                    
-                    break;
+                        time = mafiaFunc.setTime(day, survivor); 
     
-                // 최후의 발언 -> 찬/반
-                case 4: 
-                    day = 5; 
-
-                    time = mafiaFunc.setTime(day, survivor); 
-
-                    io.to(room).emit("timer", time, "찬성/반대"); 
-                    
-                    break;
+                        io.to(room).emit("timer", time, "찬성/반대"); 
+                        
+                        break;
+        
+                    // 찬/반 -> 밤
+                    case 5: 
+                        day = 1; 
     
-                // 찬/반 -> 밤
-                case 5: 
-                    day = 1; 
-
-                    time = mafiaFunc.setTime(day, survivor); 
-
-                    io.sockets.in(room).emit("timer", time, "밤");
+                        time = mafiaFunc.setTime(day, survivor); 
+    
+                        io.sockets.in(room).emit("timer", time, "밤");
+                }
+    
+                if(!end) {
+                    roomIds[checkRoomIds(room)]['day'] = day;
+                    roomIds[checkRoomIds(room)]['time'] = time;
+                    roomIds[checkRoomIds(room)]['survivor'] = survivor;
+                    roomIds[checkRoomIds(room)]['citizen'] = citizen;
+                }
             }
-
-            if(!end) {
-                roomIds[checkRoomIds(room)]['day'] = day;
-                roomIds[checkRoomIds(room)]['time'] = time;
-                roomIds[checkRoomIds(room)]['survivor'] = survivor;
-                roomIds[checkRoomIds(room)]['citizen'] = citizen;
+            catch(e) {
+                console.log(e);
             }
         });
 

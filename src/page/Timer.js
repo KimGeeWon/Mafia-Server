@@ -85,7 +85,7 @@ class Timer extends Component {
             <div>
                 <h1>{this.state.status}</h1>
                 { minutes === 0 && seconds === 0
-                    ? start === true ? <h1>{minutes}:{seconds < 10 ? `0${seconds}` : seconds}</h1> : <h1></h1>
+                    ? start === true ? <h1>{minutes}:{seconds < 10 ? `0${seconds}` : seconds}</h1> : <h1>0:00</h1>
                     : <h1>{minutes}:{seconds < 10 ? `0${seconds}` : seconds}</h1>
                 }
 

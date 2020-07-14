@@ -245,7 +245,7 @@ function initGame(room, loginId, roomId) {
 
     for(var num in loginId) {
         if(loginId[num]['room'] === room) {
-            loginId[num]['role'] = null;
+            loginId[num]['role'] = "";
             loginId[num]['do_role'] = false;
             loginId[num]['alive'] = true;
             loginId[num]['healed'] = false;
