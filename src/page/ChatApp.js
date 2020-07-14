@@ -71,7 +71,7 @@ class ChatApp extends Component {
       const messages = this.state.logs.map(e => (
         <div key={e.key} className={e.class} id={style.chat}>
           <span>{e.user}</span>
-          <span> {e.message}</span>
+          <span> - {e.message}</span>
         </div>
       ))
       return (

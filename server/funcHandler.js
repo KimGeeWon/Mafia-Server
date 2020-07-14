@@ -97,7 +97,7 @@ module.exports.checkRole = function checkRole(data, loginId, io) {
     else {
         switch(myself.role) {
             case "마피아": mafiaAbility(target, myself, io); break;
-            case "경찰": policeAbility(name, target.role, io); break;
+            case "경찰": policeAbility(name, target.role, myself, io); break;
             case "의사": doctorAbility(target, myself, io); break;
             default: io.to(loginId[checkLoginId(data.room, data.user, loginId)]['socket']).emit("none", myself.user);
         }
@@ -116,19 +116,37 @@ function mafiaAbility(target, myself, io) {
     
     target.targeted = true;
 
-    //io.to(myself['socket']).emit("who", target.user, myself.role);
+    io.to(myself['socket']).emit("broad", {
+        class : "contact", 
+        message: `${target.user}님을 저격중입니다.`
+    });
 }
 
-function policeAbility(name, role, io) {
+function policeAbility(name, role, myself, io) {
 
-    io.to(myself['socket']).emit("police", name, role);
+    var message = "";
+
+    if(role == "마피아") {
+        message = `${name}님은 마피아가 맞습니다.`
+    }
+    else {
+        message = `${name}님은 마피아가 아닙니다.`
+    }
+
+    io.to(myself['socket']).emit("broad", {
+        class : "contact", 
+        message
+    });
 }
 
 function doctorAbility(target, myself, io) {
 
     target.healed = true;
 
-    io.to(myself['socket']).emit("who", target.user, myself.role);
+    io.to(myself['socket']).emit("broad", {
+        class : "contact", 
+        message: `${target.user}님을 치료중입니다.`
+    });
 }
 
 function checkLoginId(room, name, loginId) {
@@ -272,10 +290,16 @@ module.exports.abilityCast = function abilityCast(room, survivor, citizen, login
     for(var num in loginId) {
         if(loginId[num]['room'] === room && loginId[num]['targeted'] === true) {
             if(loginId[num]['healed'] === true) {
-                io.to(room).emit("mafia", loginId[num]['user'], true);
+                io.to(room).emit("broad", {
+                    class : "contact", 
+                    message : `${loginId[num]['user']}님이 의사의 치료를 받고 살아나셨습니다.`
+                });
             }
             else {
-                io.to(room).emit("mafia", loginId[num]['user'], false);
+                io.to(room).emit("broad", {
+                    class : "contact", 
+                    message : `${loginId[num]['user']}님이 처참하게 살해당했습니다.`
+                });
                 loginId[num]['alive'] = false;
                 survivor--;
                 citizen--;
@@ -398,15 +422,15 @@ module.exports.setTime = function setTime(day, survivor) {
     
     // 밤: 25초, 낮: 생존자 * 15초, 재판: 15초, 최후의 발언: 15초, 찬/반: 10초
     switch(day) {
-        // case 1: return 10;
-        // case 2: return survivor * 15;
-        // case 3: return 15;
-        // case 4: return 15;
-        // case 5: return 10;
-        case 1: return 1;
-        case 2: return 1;//survivor * 15;
-        case 3: return 5;
-        case 4: return 1;
-        case 5: return 3;
+        case 1: return 10;
+        case 2: return survivor * 15;
+        case 3: return 15;
+        case 4: return 15;
+        case 5: return 10;
+        // case 1: return 15;
+        // case 2: return 10;//survivor * 15;
+        // case 3: return 1;
+        // case 4: return 1;
+        // case 5: return 1;
     }
 }
