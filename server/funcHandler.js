@@ -385,9 +385,9 @@ module.exports.setTime = function setTime(day, survivor) {
         // case 4: return 15;
         // case 5: return 10;
         case 1: return 3;
-        case 2: return 111115;//survivor * 15;
-        case 3: return 5;
-        case 4: return 5;
-        case 5: return 5;
+        case 2: return 3;//survivor * 15;
+        case 3: return 51111111;
+        case 4: return 3;
+        case 5: return 3;
     }
 }

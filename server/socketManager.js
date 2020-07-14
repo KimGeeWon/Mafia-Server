@@ -72,8 +72,8 @@ module.exports = (io) => {
             });
 
             // 클라이언트의 Contact 이벤트를 실행하여 입장한 사용자의 정보를 출력한다.
-            io.sockets.in(data.room).emit("contact", {
-                user : "", 
+            io.sockets.in(data.room).emit("broad", {
+                class : "contact", 
                 message : data.user + " 님이 채팅방에 들어왔습니다."
             });
 
@@ -98,20 +98,27 @@ module.exports = (io) => {
             // 전체 채팅 청소
             io.to(room).emit("clear-chat");
 
-            // // 게임 시작 공지 팝업
-            // io.to(data.room).emit("start");
+            // 게임 시작 공지 팝업
+            
+            io.to(room).emit("message", {
+                class : "start", 
+                message : `게임이 시작됐습니다!`
+            });
 
-            // // 사용자의 능력을 팝업
-            // for(var num in loginIds) {
-            //     if(loginIds[num]['room'] === data.room) {
-            //         io.to(loginIds[num]['socket']).emit("role", loginIds[num]['role']);
+            // 사용자의 능력을 팝업
+            for(var num in loginIds) {
+                if(loginIds[num]['room'] === room) {
+                    io.to(loginIds[num]['socket']).emit("message", {
+                        class : "start", 
+                        message : `당신은 ${loginIds[num]['role']} 입니다`
+                    });
 
-            //         user.push({
-            //             name: loginIds[num]['user'],
-            //             role: loginIds[num]['role']
-            //         });
-            //     }
-            // }
+                    // user.push({
+                    //     name: loginIds[num]['user'],
+                    //     role: loginIds[num]['role']
+                    // });
+                }
+            }
 
             // // 유저 리스트 팝업
             // io.to(data.room).emit("listPop", user);

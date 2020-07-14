@@ -27,10 +27,9 @@ class ChatApp extends Component {
             console.log(logs2);
         })
 
-        socket.on('contact', (obj) => {
+        socket.on('broad', (obj) => {
             const logs2 = this.state.logs;
             obj.key = 'key_' + (this.state.logs.length + 1);
-            obj.class = 'broad';
             logs2.push(obj);
             this.setState({logs: logs2});
         })
@@ -50,6 +49,10 @@ class ChatApp extends Component {
           })
 
           this.setState({logs: message});
+        })
+
+        socket.on('start', () => {
+
         })
     }
     render () {
