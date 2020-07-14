@@ -3,6 +3,7 @@ import style from "../css/ChatApp.module.css"
 import "../css/chat.css"
 
 var socket = null;
+var user = "";
 
 class ChatApp extends Component {
     constructor (props) {
@@ -21,17 +22,18 @@ class ChatApp extends Component {
   
     componentDidMount () {
         socket = this.props.socket;
+        user = this.props.user;
 
         socket.on('message', (obj, role) => {
             const logs2 = this.state.logs;
             obj.key = 'key_' + (this.state.logs.length + 1);
-            obj.class = role;
-            if(role === "마피아") {
-              obj.class = 'mafia';
+            obj.class = `msg-container msg-remote`;
+            if(obj.user == user) {
+              obj.class = `msg-container msg-self`;
             }
+            obj.id = role;
             logs2.push(obj);
             this.setState({logs: logs2});
-            console.log(logs2);
         })
 
         socket.on('broad', (obj) => {
@@ -39,20 +41,7 @@ class ChatApp extends Component {
         })
 
         socket.on('clear-chat', () => {
-          this.setState({logs: []});
-        })
-
-        socket.on('gameEnd', (win) => {
-          const message = this.state.logs;
-
-          message.push ({
-            key: 'key_' + (this.state.logs.length + 1),
-            className: "broad",
-            user: "",
-            message: `게임이 ${win}의 승리로 종료되었습니다!`
-          })
-
-          this.setState({logs: message});
+            this.setState({logs: []});
         })
 
         socket.on('vote', (name, do_vote) => {
@@ -61,7 +50,8 @@ class ChatApp extends Component {
           }
           else {
             this.broadCast({
-              class : "vote", 
+              class: "msg-container msg-center",
+              id: "vote", 
               message : `${name}님 한 표!`
             });
           }
@@ -69,13 +59,25 @@ class ChatApp extends Component {
     }
     render () {
       const messages = this.state.logs.map(e => (
-        <div key={e.key} className={e.class} id={style.chat}>
-          <span>{e.user}</span>
-          <span> - {e.message}</span>
+        <div key={e.key} className={e.class} id={e.id}>
+          <div className="msg-box">
+            <div className="flr">
+              <div className="messages">
+                <p className="name" id={e.id}>
+                  {e.user}
+                </p>
+                <p className="msg" id={e.id}>
+                  {e.message}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       ))
       return (
-        <div>{messages}</div>
+        <div>
+          {messages}
+        </div>
       )
     }
   }

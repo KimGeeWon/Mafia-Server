@@ -73,7 +73,6 @@ class GameScreen extends Component {
                   <hr></hr>
               </h1>
               <input type="button" onClick={startGame} className={style.startGame} value="게임 시작"/>
-              {/* <button onClick={this.clearChat}>채팅 청소</button> */}
               <hr></hr>
               <Timer roomName={this.state.room} socket={socket}/>
           </div>
@@ -81,7 +80,7 @@ class GameScreen extends Component {
           <div className={style.slice}></div>
 
           <div className={style.chat}>
-              <ChatApp socket={socket}/>
+              <ChatApp socket={socket} user={this.state.user}/>
           </div>
 
           <div className={style.chat_wrapper}>

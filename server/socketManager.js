@@ -71,7 +71,8 @@ module.exports = (io) => {
 
             // 클라이언트의 Contact 이벤트를 실행하여 입장한 사용자의 정보를 출력한다.
             io.to(data.room).emit("broad", {
-                class : "contact", 
+                class: "msg-container msg-center",
+                id: "contact", 
                 message : data.user + " 님이 채팅방에 들어왔습니다."
             });
 
@@ -98,7 +99,8 @@ module.exports = (io) => {
             // 게임 시작 공지 팝업
             
             io.to(room).emit("message", {
-                class : "start", 
+                class: "msg-container msg-center",
+                id: "start", 
                 message : `게임이 시작됐습니다!`
             });
 
@@ -106,7 +108,8 @@ module.exports = (io) => {
             for(var num in loginIds) {
                 if(loginIds[num]['room'] === room) {
                     io.to(loginIds[num]['socket']).emit("message", {
-                        class : "start", 
+                        class: "msg-container msg-center",
+                        id: "start", 
                         message : `당신은 ${loginIds[num]['role']} 입니다`
                     });
 
@@ -132,16 +135,6 @@ module.exports = (io) => {
                 var day = roomIds[checkRoomIds(data.room)]['day'];
                 var elect = roomIds[checkRoomIds(data.room)]['elect'];
     
-                if(data.message == "ㅁㄴㅇㄹ") {
-                    console.log(roomIds);
-                    console.log(loginIds);
-                }
-
-                if(data.message == "ㅂㅈㄷㄱ") {
-                    loginIds[checkLoginIds(data.room, data.user)]['alive'] = false;
-                    console.log(loginIds[checkLoginIds(data.room, data.user)]['alive']);
-                }
-    
                 if(data.message.startsWith('/')) {
     
                     switch(day) {
@@ -152,16 +145,6 @@ module.exports = (io) => {
                     }
     
                     copyIds(ids);
-    
-                    // loginIds[checkLoginIds(data.room, data.user)]['role'] = "마피아";
-    
-                    // var ids;
-    
-                    // ids = mafiaFunc.checkRole(data, loginIds, io);
-    
-                    // copyIds(ids);
-    
-                    // console.log(loginIds);
                 }
                 else {
                     // 죽은 사람이 채팅을 치는 경우
@@ -178,7 +161,7 @@ module.exports = (io) => {
                         if(role == "마피아") {
                             for(var num in loginIds) {
                                 if(loginIds[num]['room'] === data.room && loginIds[num]['role'] === "마피아") {
-                                    io.to(loginIds[num]['socket']).emit("message", data, role);
+                                    io.to(loginIds[num]['socket']).emit("message", data, "mafia");
                                 }
                             }
                         }
@@ -247,7 +230,8 @@ module.exports = (io) => {
                         io.to(room).emit("timer", time, "투표"); 
 
                         io.to(room).emit("broad", {
-                            class : "contact", 
+                            class: "msg-container msg-center",
+                            id: "contact", 
                             message : "투표 시간이 되었습니다."
                         });
                         
@@ -256,8 +240,6 @@ module.exports = (io) => {
                     // 투표 -> 최후의 반론
                     case 3: 
                         ids = mafiaFunc.voteCast(room, loginIds, roomIds, io);
-
-                        console.log(ids);
 
                         day = ids.day;
 
@@ -274,7 +256,8 @@ module.exports = (io) => {
                             io.to(room).emit("timer", time, "최후의 반론");
 
                             io.to(room).emit("broad", {
-                                class : "contact", 
+                                class: "msg-container msg-center",
+                                id: "contact", 
                                 message : `${elect}님의 최후의 반론`
                             });
                         }
@@ -290,7 +273,8 @@ module.exports = (io) => {
                         io.to(room).emit("timer", time, "찬성/반대"); 
 
                         io.to(room).emit("broad", {
-                            class : "contact", 
+                            class: "msg-container msg-center",
+                            id: "contact", 
                             message : `찬반 투표 시간입니다.`
                         });
                         
@@ -319,7 +303,8 @@ module.exports = (io) => {
                         io.sockets.in(room).emit("timer", time, "밤");
 
                         io.to(room).emit("broad", {
-                            class : "contact", 
+                            class: "msg-container msg-center",
+                            id: "contact", 
                             message : `밤이 되었습니다.`
                         });
                 }

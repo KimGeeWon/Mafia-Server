@@ -39,8 +39,6 @@ class Timer extends Component {
     componentDidMount() {
         socket = this.props.socket;
 
-        console.log(this.state);
-
         socket.on("timer", (time, stat) => {
             var min = 0;
             var sec = 0;
@@ -61,7 +59,7 @@ class Timer extends Component {
             this.timer();
         })
 
-        socket.on("gameEnd", (win) => {
+        socket.on("clear-timer", () => {
             
             this.setState({status: "", start: false});
         });
@@ -88,8 +86,6 @@ class Timer extends Component {
                     ? start === true ? <h1>{minutes}:{seconds < 10 ? `0${seconds}` : seconds}</h1> : <h1>0:00</h1>
                     : <h1>{minutes}:{seconds < 10 ? `0${seconds}` : seconds}</h1>
                 }
-
-                <button onClick={this.timerClick}>타이머</button>
             </div>
         )
     }

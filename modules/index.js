@@ -142,8 +142,6 @@ io.sockets.on("connection", function(socket) {
     // 채팅방 입시 실행
     socket.on("access", function(data) {
 
-        // console.log(io.sockets.adapter.rooms);
-
         if(!checkRoomIds(data.room)) {
             roomIds.push({
                 room : data.room, // 방 이름
@@ -362,32 +360,6 @@ io.sockets.on("connection", function(socket) {
                 // 클라이언트의 Message 이벤트를 발생시킨다.
                 //io.sockets.in(data.room).emit("message", data, role, status, day);
 
-                console.log(day);
-
-                if(data.message === "ㅁ") {
-
-                    console.log("loginIds: ");
-                    console.log(loginIds);
-
-                    console.log("roomIds: ");
-                    console.log(roomIds);
-
-                    break;
-                }
-
-                if(data.message === "ㄴ") {
-                    
-                    console.log("status: ", status);
-                    console.log("day: ", day);
-                }
-
-                if(data.message === "사망") {
-
-                    loginIds[checkLoginIds(data.room, data.name)]['status'] = 1;
-
-                    break;
-                }
-
                 if(data.message.startsWith('!')) {
 
                     switch(day) {
@@ -446,7 +418,6 @@ io.sockets.on("connection", function(socket) {
 
                 // 사망한 사람이 채팅을 칠 때
                 if(status === 1) {
-                    console.log("status 1");
 
                     for(var num in loginIds) {
                         if(loginIds[num]['room'] === data.room && loginIds[num]['status'] === 1) {
@@ -459,7 +430,6 @@ io.sockets.on("connection", function(socket) {
 
                 // 최후의 반론때 용의자가 채팅을 칠 때
                 if(day == 4) {
-                    console.log("day 4");
 
                     for(var num in loginIds) {
                         if(loginIds[num]['room'] === data.room && elect == data.name) {
@@ -472,7 +442,6 @@ io.sockets.on("connection", function(socket) {
 
                 // 밤을 제외한 생존자들이 채팅을 칠 때
                 if(day !== 1) {
-                    console.log("status 0");
 
                     for(var num in loginIds) {
                         if(loginIds[num]['room'] === data.room) {
@@ -485,7 +454,6 @@ io.sockets.on("connection", function(socket) {
 
                 // 마피아가 밤에 채팅할 경우
                 if(role === "마피아" && day === 1) {
-                    console.log("마피아");
 
                     for(var num in loginIds) {
                         if(loginIds[num]['room'] === data.room && loginIds[num]['role'] === "마피아") {
