@@ -16,9 +16,9 @@ function checkRoomIds(room) {
     return false;
 }
 
-function checkLoginIds(room, name) {
+function checkLoginIds(room, user) {
     for(var num in loginIds) {
-        if(loginIds[num]['room'] === room && loginIds[num]['user'] === name) {
+        if(loginIds[num]['room'] === room && loginIds[num]['user'] === user) {
             return num;
         } 
     }
@@ -73,10 +73,89 @@ module.exports = (io) => {
             io.to(data.room).emit("broad", {
                 class: "msg-container msg-center",
                 id: "contact", 
-                message : data.user + " 님이 채팅방에 들어왔습니다."
+                message : data.user + " 님이 방에 들어왔습니다."
             });
 
-            io.to(data.room).emit("access", io.sockets.adapter.rooms[data.room].length);
+            io.to(data.room).emit("access", io.sockets.adapter.rooms[data.room].length, data.user);
+            
+            var lists = [];
+
+            for(var num in loginIds) {
+                if(loginIds[num]['room'] === data.room) {
+                    lists.push(loginIds[num]['user']);
+                }
+            }
+
+            io.to(data.room).emit("lists", lists);
+        });
+
+        socket.on("disconnect", function() {
+            var room = "";
+            var user = "";
+            var count = 0;
+
+            console.log(1234);
+
+            // disconnect 이벤트중 socket.io의 정보를 꺼내는데는 에러가 발생하고,
+            // 실행중인 node.js Application이 종료된다.
+            // 이에따라 try ~ catch ~ finally 로 예외처리해준다.
+            try {
+                // 생성된 방의 수만큼 반복문을 돌린다.
+                for(var key in io.sockets.adapter.rooms) {
+    
+                    // loginIds 배열의 값만큼 반복문을 돌린다.
+                    var members = loginIds.filter(function(data) {
+                        return data.room === key;
+                    });
+       
+                    // 현재 소켓 방의 length와 members 배열의 갯수가 일치하지 않는경우
+                    if(io.sockets.adapter.rooms[key].length != members.length) {
+                   
+                        // 반복문으로 loginIds에 해당 socket.id값의 존재 여부를 확인한다.
+                        for(var num in loginIds) {
+    
+                            // 일치하는 socket.id의 정보가 없을경우 그 사용자가 방에서 퇴장한것을 알 수 있다.
+                            if(io.sockets.adapter.rooms[key].sockets.hasOwnProperty(loginIds[num]['socket']) == false) {
+    
+                                // 퇴장한 사용자의 정보를 변수에 담는다.
+                                room = key;
+                                user = loginIds[num]['user'];
+    
+                                // loginIds 배열에서 퇴장한 사용자의 정보를 삭제한다.
+                                loginIds.splice(num, 1);
+                            }
+                        }
+                       
+                        // 해당 방의 인원수를 다시 구한다.
+                        count = io.sockets.adapter.rooms[key].length;
+                    }
+                }
+    
+            } catch(exception) {
+    
+                console.log(exception);
+    
+            } finally {
+    
+                // 클라이언트의 Contact 이벤트를 실행하여 입장한 사용자의 정보를 출력한다.
+                io.sockets.in(room).emit("broad", {
+                    class: "msg-container msg-center",
+                    id: "contact", 
+                    message : user + " 님이 방에서 퇴장했습니다."
+                });
+
+                io.to(room).emit("access", io.sockets.adapter.rooms[room].length, user);
+                
+                var lists = [];
+
+                for(var num in loginIds) {
+                    if(loginIds[num]['room'] === room) {
+                        lists.push(loginIds[num]['user']);
+                    }
+                }
+
+                io.to(room).emit("lists", lists);
+            }
         });
 
         socket.on("start", (room) => {
@@ -98,7 +177,7 @@ module.exports = (io) => {
 
             // 게임 시작 공지 팝업
             
-            io.to(room).emit("message", {
+            io.to(room).emit("broad", {
                 class: "msg-container msg-center",
                 id: "start", 
                 message : `게임이 시작됐습니다!`
@@ -107,14 +186,14 @@ module.exports = (io) => {
             // 사용자의 능력을 팝업
             for(var num in loginIds) {
                 if(loginIds[num]['room'] === room) {
-                    io.to(loginIds[num]['socket']).emit("message", {
+                    io.to(loginIds[num]['socket']).emit("broad", {
                         class: "msg-container msg-center",
                         id: "start", 
                         message : `당신은 ${loginIds[num]['role']} 입니다`
                     });
 
                     // user.push({
-                    //     name: loginIds[num]['user'],
+                    //     user: loginIds[num]['user'],
                     //     role: loginIds[num]['role']
                     // });
                 }
@@ -128,7 +207,6 @@ module.exports = (io) => {
         })
 
         socket.on("message", function(data) {
-
             try {
                 var role = loginIds[checkLoginIds(data.room, data.user)]['role'];
                 var alive = loginIds[checkLoginIds(data.room, data.user)]['alive'];

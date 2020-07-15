@@ -6,6 +6,10 @@
     color: #adadad;
 }
 
+.msg-box-broad {
+    text-align: center;
+}
+
 .msg-container {
     position: relative;
     display: inline-block;

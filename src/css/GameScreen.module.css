@@ -8,7 +8,7 @@
 }
 
 .chat {
-    width: 800px;
+    width: 50%;
     height: 90%;
     float: left;
     padding: 10px; 
@@ -17,7 +17,7 @@
 }
 
 .chat_wrapper {
-    width: 800px;
+    width: 50%;
     height: 10%;
     float: left;
     padding: 10px; 
@@ -60,6 +60,24 @@
     box-shadow:inset 0 0 5px 5px #E6E6E6;
     clear: right;
     cursor: pointer;
+}
+
+.user_list_wrapper {
+    display: inline-block;
+    height: 100%;
+    position: absolute;
+    left: calc(250px + 50%);
+    right: 0;
+}
+
+.user_list_wrapper table {
+    width: 100%;
+    border-spacing: 0 50px;
+}
+
+.user_list_wrapper td {
+    width: 25%;
+    text-align: center;
 }
 
 .input {

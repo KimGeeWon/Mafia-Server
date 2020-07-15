@@ -14,7 +14,7 @@ const PORT = 8080;
 
 app.get('/', (req, res) => {
 
-    fs.readFile("./module/client.html", function(error, data) {
+    fs.readFile("./modules/client.html", function(error, data) {
         if(error) { 
             console.log(error); 
         }
@@ -228,7 +228,8 @@ io.sockets.on("connection", function(socket) {
                             loginIds.splice(num, 1);
                         }
                     }
-                   
+                    
+                    console.log(room);
                     // 해당 방의 인원수를 다시 구한다.
                     count = io.sockets.adapter.rooms[key].length;
                 }

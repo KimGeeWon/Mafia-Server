@@ -2,9 +2,10 @@ import React, { Component } from 'react';
 import io from 'socket.io-client';
 import Timer from './Timer';
 import ChatApp from './ChatApp'
+import PlayerList from './PlayerList'
 import style from "../css/GameScreen.module.css"
 
-const socket = io('localhost:3002');
+var socket = io('localhost:3002');;
 
 class GameScreen extends Component {
 
@@ -86,6 +87,10 @@ class GameScreen extends Component {
           <div className={style.chat_wrapper}>
               <input value={this.state.message} id="message" onChange={inputChange} onKeyPress={inputPress} className={style.input}/>
               <input type="button" id="submit" value="입력" onClick={inputClick} className={style.apply}/>
+          </div>
+
+          <div className={style.user_list_wrapper}>
+            <PlayerList socket={socket} room={this.state.room}/>
           </div>
       </div>
     );

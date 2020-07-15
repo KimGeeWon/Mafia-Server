@@ -16,6 +16,7 @@ class ChatApp extends Component {
     broadCast = (obj) => {
       const logs2 = this.state.logs;
       obj.key = 'key_' + (this.state.logs.length + 1);
+      obj.box = "msg-box-broad";
       logs2.push(obj);
       this.setState({logs: logs2});
     }
@@ -28,6 +29,7 @@ class ChatApp extends Component {
             const logs2 = this.state.logs;
             obj.key = 'key_' + (this.state.logs.length + 1);
             obj.class = `msg-container msg-remote`;
+            obj.box = "msg-box";
             if(obj.user == user) {
               obj.class = `msg-container msg-self`;
             }
@@ -60,7 +62,7 @@ class ChatApp extends Component {
     render () {
       const messages = this.state.logs.map(e => (
         <div key={e.key} className={e.class} id={e.id}>
-          <div className="msg-box">
+          <div className={e.box}>
             <div className="flr">
               <div className="messages">
                 <p className="name" id={e.id}>
