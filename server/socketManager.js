@@ -119,15 +119,9 @@ module.exports = (io) => {
         
                     // 현재 소켓 방의 length와 members 배열의 갯수가 일치하지 않는경우
                     if(io.sockets.adapter.rooms[key].length != members.length) {
-                        console.log("io.sockets.adapter.rooms[key].length");
-                        console.log(io.sockets.adapter.rooms[key].length);
-                        console.log("members count");
-                        console.log(members.length);
 
                         // 반복문으로 loginIds에 해당 socket.id값의 존재 여부를 확인한다.
                         for(var num in loginIds) {
-                            console.log("num");
-                            console.log(num);
     
                             // 일치하는 socket.id의 정보가 없을경우 그 사용자가 방에서 퇴장한것을 알 수 있다.
                             if(io.sockets.adapter.rooms[key].sockets.hasOwnProperty(loginIds[num]['socket']) == false && isRoom(key)) {
@@ -168,57 +162,6 @@ module.exports = (io) => {
             }
 
             io.to(room).emit("lists", lists);
-
-
-            /////////////////////////////
-
-
-             // disconnect 이벤트중 socket.io의 정보를 꺼내는데는 에러가 발생하고,
-            // 실행중인 node.js Application이 종료된다.
-            // 이에따라 try ~ catch ~ finally 로 예외처리해준다.
-            // try {
-            //     // 생성된 방의 수만큼 반복문을 돌린다.
-            //     for(var key in io.sockets.adapter.rooms) {
-
-            //         // loginIds 배열의 값만큼 반복문을 돌린다.
-            //         var members = loginIds.filter(function(data) {
-            //             return data.room === key;
-            //         });
-       
-            //         // 현재 소켓 방의 length와 members 배열의 갯수가 일치하지 않는경우
-            //         if(io.sockets.adapter.rooms[key].length != members.length) {
-            //             console.log("io.sockets.adapter.rooms[key].length");
-            //             console.log(io.sockets.adapter.rooms[key].length);
-            //             console.log("members count");
-            //             console.log(members.length);
-
-            //             // 반복문으로 loginIds에 해당 socket.id값의 존재 여부를 확인한다.
-            //             for(var num in loginIds) {
-            //                 console.log("num");
-            //                 console.log(num);
-    
-            //                 // 일치하는 socket.id의 정보가 없을경우 그 사용자가 방에서 퇴장한것을 알 수 있다.
-            //                 if(io.sockets.adapter.rooms[key].sockets.hasOwnProperty(loginIds[num]['socket']) == false) {
-            //                     console.log("제거");
-            //                     // 퇴장한 사용자의 정보를 변수에 담는다.
-            //                     room = key;
-            //                     user = loginIds[num]['user'];
-                                
-            //                     console.log("제거되기 전");
-            //                     console.log(loginIds);
-            //                     // loginIds 배열에서 퇴장한 사용자의 정보를 삭제한다.
-            //                     loginIds.splice(num, 1);
-            //                     console.log("제거된 후");
-            //                     console.log(loginIds);
-            //                 }
-            //             }
-                       
-            //             // 해당 방의 인원수를 다시 구한다.
-            //             count = io.sockets.adapter.rooms[key].length;
-            //             console.log("io.sockets.adapter.rooms[key].length");
-            //             console.log(io.sockets.adapter.rooms[key].length);
-            //         }
-            //     }
         });
 
         socket.on("start", (room) => {
@@ -277,6 +220,10 @@ module.exports = (io) => {
                 var alive = loginIds[checkLoginIds(data.room, data.user)]['alive'];
                 var day = roomIds[checkRoomIds(data.room)]['day'];
                 var elect = roomIds[checkRoomIds(data.room)]['elect'];
+
+                if(data.message == "ㅂㅈㄷㄱ") {
+                    console.log(io.sockets.adapter.rooms);
+                }
     
                 if(data.message.startsWith('/')) {
     
